@@ -50,34 +50,36 @@ def update_readme():
             f.write("# Algorithm Study\n\n")
 
     with open(readme_path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+        content = f.read()
 
-    with open(readme_path, "w", encoding="utf-8") as f:
-        is_inside_table = False
-        found_marker = False
+    # HTML 주석 마커 사이의 내용을 새 테이블로 교체
+    start_marker = "<!-- STATS_TABLE_START -->"
+    end_marker = "<!-- STATS_TABLE_END -->"
+    
+    if start_marker in content and end_marker in content:
+        # 마커 사이의 내용을 교체
+        start_idx = content.find(start_marker) + len(start_marker)
+        end_idx = content.find(end_marker)
         
-        for line in lines:
-            if "" in line:
-                f.write(line)
-                f.write(table_header)
-                f.write(table_divider)
-                f.write(table_content)
-                is_inside_table = True
-                found_marker = True
-            elif "" in line:
-                is_inside_table = False
-                f.write(line)
-            elif not is_inside_table:
-                f.write(line)
+        new_content = (
+            content[:start_idx] + "\n" +
+            table_header +
+            table_divider +
+            table_content +
+            content[end_idx:]
+        )
         
-        # 만약 주석(Marker)이 없으면 파일 맨 끝에 표를 추가함 (안전장치)
-        if not found_marker:
-            f.write("\n\n## 📊 주차별 풀이 현황\n")
-            f.write("\n")
+        with open(readme_path, "w", encoding="utf-8") as f:
+            f.write(new_content)
+    else:
+        # 마커가 없으면 파일 맨 끝에 추가
+        with open(readme_path, "a", encoding="utf-8") as f:
+            f.write("\n\n## 📊 주차별 풀이 현황\n\n")
+            f.write(start_marker + "\n")
             f.write(table_header)
             f.write(table_divider)
             f.write(table_content)
-            f.write("\n")
+            f.write(end_marker + "\n")
 
 if __name__ == "__main__":
     update_readme()
