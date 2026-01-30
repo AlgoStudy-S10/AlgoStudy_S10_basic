@@ -68,12 +68,17 @@ jobs:
             if [ -d "$week_dir" ]; then
               WEEK_NAME=$(basename "$week_dir")
               TARGET_DIR="${MONTH}/${WEEK_NAME}/${NAME}"
+              CURRENT_WEEK_DIR="금주_코드/${WEEK_NAME}"
               mkdir -p "$TARGET_DIR"
+              mkdir -p "$CURRENT_WEEK_DIR"
               
               # 해당 주차 폴더의 Java 파일들을 복사
               find "$week_dir" -maxdepth 1 -name "*.java" -type f | while read -r file; do
                 filename=$(basename "$file")
-                # 이미 같은 이름의 파일이 있는지 확인
+                base_name="${filename%.java}"
+                name_with_member="${base_name}_${NAME}.java"
+                
+                # 월/주차/이름 폴더에 복사
                 if [ -f "${TARGET_DIR}/${filename}" ]; then
                   echo "⚠️  File ${filename} already exists in ${TARGET_DIR}, skipping..."
                 else
@@ -81,6 +86,10 @@ jobs:
                   echo "✅ Copied ${filename} to ${TARGET_DIR}"
                   FILES_COPIED=$((FILES_COPIED + 1))
                 fi
+                
+                # 금주_코드 폴더에 이름 포함된 파일명으로 복사
+                cp "$file" "${CURRENT_WEEK_DIR}/${name_with_member}"
+                echo "📋 Copied ${filename} to ${CURRENT_WEEK_DIR}/${name_with_member}"
               done
             fi
           done
@@ -92,7 +101,7 @@ jobs:
           
           # 변경사항이 있는지 확인
           if [ -n "$(git status --porcelain)" ]; then
-            git add "${MONTH}/"
+            git add "${MONTH}/" "금주_코드/"
             git commit -m "📁 Auto organize: ${NAME} - ${MONTH}월 (${FILES_COPIED}개 파일)"
             
             # main 브랜치로 체크아웃하고 병합
