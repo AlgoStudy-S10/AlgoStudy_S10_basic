@@ -1,0 +1,11 @@
+package practiceCodingTest.backJoon;
+import java.util.*;
+import java.io.*;
+
+public class Back5073 throws IOException {
+
+	public static void main(String[] args) {
+		
+	}
+
+}
