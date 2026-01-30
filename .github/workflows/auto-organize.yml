@@ -72,7 +72,7 @@ jobs:
           
           # 주차 이름 생성
           WEEK_NAME="week${WEEK}"
-          TARGET_DIR="${MONTH}/${WEEK_NAME}/${NAME}"
+          TARGET_DIR="${WORKSPACE_DIR}/${MONTH}/${WEEK_NAME}"
           CURRENT_WEEK_DIR="weeklyCode/${WEEK_NAME}"
           mkdir -p "$TARGET_DIR"
           mkdir -p "$CURRENT_WEEK_DIR"
@@ -105,7 +105,7 @@ jobs:
           
           # 변경사항이 있는지 확인
           if [ -n "$(git status --porcelain)" ]; then
-            git add "${MONTH}/" "weeklyCode/" "$THIS_WEEK_DIR"
+            git add "$WORKSPACE_DIR/" "weeklyCode/" "$THIS_WEEK_DIR"
             git commit -m "📁 Auto organize: ${NAME} - ${MONTH}월 week${WEEK}"
             
             # main 브랜치로 체크아웃하고 병합
