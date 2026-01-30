@@ -1,0 +1,17 @@
+package practiceCodingTest.backJoon;
+import java.util.*;
+import java.io.*;
+
+public class Back23971 {
+
+	public static void main(String[] args) throws IOException{
+		// TODO Auto-generated method stub
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		StringTokenizer st = new StringTokenizer(br.readLine());
+		int H = Integer.parseInt(st.nextToken());
+		int W = Integer.parseInt(st.nextToken());
+		double N = Double.parseDouble(st.nextToken());
+		double M = Double.parseDouble(st.nextToken());
+		System.out.println(Math.ceil(H/(N+1))*Math.ceil(W/(M+1)));
+	}
+}

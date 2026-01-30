@@ -1,0 +1,120 @@
+name: Auto Organize Algorithm Files
+
+on:
+  push:
+    branches:
+      - ksm
+      - jji
+      - ish
+      - lkh
+
+jobs:
+  organize:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Organize files
+        run: |
+          # 브랜치 이름에 따른 이름 매핑
+          case "${{ github.ref_name }}" in
+            ksm) NAME="김세민" ;;
+            jji) NAME="장지인" ;;
+            ish) NAME="임성혁" ;;
+            lkh) NAME="이경호" ;;
+            *) echo "Unknown branch"; exit 1 ;;
+          esac
+          
+          # 커밋 날짜로부터 월 계산
+          COMMIT_DATE=$(git log -1 --format=%cd --date=format:'%Y-%m-%d')
+          MONTH=$(date -d "$COMMIT_DATE" +%m 2>/dev/null || date -j -f "%Y-%m-%d" "$COMMIT_DATE" +%m)
+          
+          # 해당 월의 첫 번째 날 계산
+          YEAR=$(date -d "$COMMIT_DATE" +%Y 2>/dev/null || date -j -f "%Y-%m-%d" "$COMMIT_DATE" +%Y)
+          
+          # 주차 계산 (해당 월의 몇 번째 주인지)
+          if date --version >/dev/null 2>&1; then
+            # GNU date (Linux)
+            COMMIT_DAY=$(date -d "$COMMIT_DATE" +%d)
+          else
+            # BSD date (macOS)
+            COMMIT_DAY=$(date -j -f "%Y-%m-%d" "$COMMIT_DATE" +%d)
+          fi
+          
+          WEEK=$(( (COMMIT_DAY - 1) / 7 + 1 ))
+          
+          # workspace/이름/thisWeek 폴더 확인
+          WORKSPACE_DIR="workspace/${NAME}"
+          THIS_WEEK_DIR="${WORKSPACE_DIR}/thisWeek"
+          
+          if [ ! -d "$THIS_WEEK_DIR" ]; then
+            echo "❌ Error: $THIS_WEEK_DIR not found"
+            exit 1
+          fi
+          
+          # thisWeek 폴더에 Java 파일이 있는지 확인
+          JAVA_FILES=$(find "$THIS_WEEK_DIR" -maxdepth 1 -name "*.java" -type f)
+          
+          if [ -z "$JAVA_FILES" ]; then
+            echo "ℹ️  No Java files found in $THIS_WEEK_DIR"
+            exit 0
+          fi
+          
+          # 주차 이름 생성
+          WEEK_NAME="week${WEEK}"
+          TARGET_DIR="${MONTH}/${WEEK_NAME}/${NAME}"
+          CURRENT_WEEK_DIR="weeklyCode/${WEEK_NAME}"
+          mkdir -p "$TARGET_DIR"
+          mkdir -p "$CURRENT_WEEK_DIR"
+          
+          # thisWeek 폴더의 Java 파일들을 복사
+          FILES_COPIED=0
+          
+          find "$THIS_WEEK_DIR" -maxdepth 1 -name "*.java" -type f | while read -r file; do
+            filename=$(basename "$file")
+            base_name="${filename%.java}"
+            name_with_member="${base_name}_${NAME}.java"
+            
+            # 월/주차/이름 폴더에 복사
+            if [ -f "${TARGET_DIR}/${filename}" ]; then
+              echo "⚠️  File ${filename} already exists in ${TARGET_DIR}, skipping..."
+            else
+              cp "$file" "${TARGET_DIR}/${filename}"
+              echo "✅ Copied ${filename} to ${TARGET_DIR}"
+              FILES_COPIED=$((FILES_COPIED + 1))
+            fi
+            
+            # weeklyCode 폴더에 이름 포함된 파일명으로 복사
+            cp "$file" "${CURRENT_WEEK_DIR}/${name_with_member}"
+            echo "📋 Copied ${filename} to ${CURRENT_WEEK_DIR}/${name_with_member}"
+          done
+          
+          # thisWeek 폴더 비우기
+          rm -f "$THIS_WEEK_DIR"/*.java
+          echo "🗑️  Cleaned up $THIS_WEEK_DIR"
+          
+          # 변경사항이 있는지 확인
+          if [ -n "$(git status --porcelain)" ]; then
+            git add "${MONTH}/" "weeklyCode/" "$THIS_WEEK_DIR"
+            git commit -m "📁 Auto organize: ${NAME} - ${MONTH}월 week${WEEK}"
+            
+            # main 브랜치로 체크아웃하고 병합
+            git fetch origin main
+            git checkout main
+            git merge --no-ff ${{ github.ref_name }} -m "Merge ${NAME}'s solutions for ${MONTH}월 week${WEEK}"
+            git push origin main
+            
+            echo "✅ Files organized and pushed to main branch"
+          else
+            echo "ℹ️ No changes to commit"
+          fi
