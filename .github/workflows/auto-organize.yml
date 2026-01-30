@@ -68,7 +68,7 @@ jobs:
             if [ -d "$week_dir" ]; then
               WEEK_NAME=$(basename "$week_dir")
               TARGET_DIR="${MONTH}/${WEEK_NAME}/${NAME}"
-              CURRENT_WEEK_DIR="금주_코드/${WEEK_NAME}"
+              CURRENT_WEEK_DIR="weeklyCode/${WEEK_NAME}"
               mkdir -p "$TARGET_DIR"
               mkdir -p "$CURRENT_WEEK_DIR"
               
@@ -87,7 +87,7 @@ jobs:
                   FILES_COPIED=$((FILES_COPIED + 1))
                 fi
                 
-                # 금주_코드 폴더에 이름 포함된 파일명으로 복사
+                # weeklyCode 폴더에 이름 포함된 파일명으로 복사
                 cp "$file" "${CURRENT_WEEK_DIR}/${name_with_member}"
                 echo "📋 Copied ${filename} to ${CURRENT_WEEK_DIR}/${name_with_member}"
               done
@@ -101,7 +101,7 @@ jobs:
           
           # 변경사항이 있는지 확인
           if [ -n "$(git status --porcelain)" ]; then
-            git add "${MONTH}/" "금주_코드/"
+            git add "${MONTH}/" "weeklyCode/"
             git commit -m "📁 Auto organize: ${NAME} - ${MONTH}월 (${FILES_COPIED}개 파일)"
             
             # main 브랜치로 체크아웃하고 병합
