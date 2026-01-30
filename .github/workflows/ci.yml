@@ -1,0 +1,33 @@
+name: Update Study Dashboard
+
+on:
+  push:
+    branches: [ "main" ]  # main 브랜치에 푸시될 때마다 실행
+    paths:
+      - '**.java'       # 자바 파일이 올라왔을 때
+      - 'stats.py'      # 스크립트가 수정됐을 때
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          
+      - name: Run Update Script
+        run: python stats.py
+        
+      - name: Commit & Push changes
+        run: |
+          git config --global user.name 'Study-Bot'
+          git config --global user.email 'bot@noreply.github.com'
+          git add README.md
+          git commit -m "Auto-update: 풀이 현황 갱신 🚀" || echo "No changes to commit"
+          git push
