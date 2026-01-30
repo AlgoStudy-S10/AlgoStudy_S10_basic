@@ -1,4 +1,0 @@
-INDEX VERSION 1.134+/Users/kimsemin/Desktop/2026/workspace/.metadata/.plugins/org.eclipse.jdt.core
-1344444650.index
-1865797976.index
-4199425623.index

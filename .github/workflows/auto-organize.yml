@@ -35,13 +35,12 @@ jobs:
             *) echo "Unknown branch"; exit 1 ;;
           esac
           
-          # 커밋 날짜로부터 월/주차 계산
+          # 커밋 날짜로부터 월 계산
           COMMIT_DATE=$(git log -1 --format=%cd --date=format:'%Y-%m-%d')
           MONTH=$(date -d "$COMMIT_DATE" +%m 2>/dev/null || date -j -f "%Y-%m-%d" "$COMMIT_DATE" +%m)
           
           # 해당 월의 첫 번째 날 계산
           YEAR=$(date -d "$COMMIT_DATE" +%Y 2>/dev/null || date -j -f "%Y-%m-%d" "$COMMIT_DATE" +%Y)
-          FIRST_DAY="${YEAR}-${MONTH}-01"
           
           # 주차 계산 (해당 월의 몇 번째 주인지)
           if date --version >/dev/null 2>&1; then
@@ -54,36 +53,55 @@ jobs:
           
           WEEK=$(( (COMMIT_DAY - 1) / 7 + 1 ))
           
-          # 타겟 폴더 생성
-          TARGET_DIR="${MONTH}/week${WEEK}/${NAME}"
-          mkdir -p "$TARGET_DIR"
+          # workspace/이름/ 폴더가 있는지 확인
+          WORKSPACE_DIR="workspace/${NAME}"
           
-          # workspace 폴더에서 Java 파일 찾아서 이동
-          if [ -d "workspace" ]; then
-            find workspace -name "*.java" -type f | while read -r file; do
-              filename=$(basename "$file")
-              # 이미 같은 이름의 파일이 있는지 확인
-              if [ -f "${TARGET_DIR}/${filename}" ]; then
-                echo "File ${filename} already exists in ${TARGET_DIR}, skipping..."
-              else
-                cp "$file" "${TARGET_DIR}/${filename}"
-                echo "Copied ${filename} to ${TARGET_DIR}"
-              fi
-            done
+          if [ ! -d "$WORKSPACE_DIR" ]; then
+            echo "❌ Error: $WORKSPACE_DIR not found"
+            exit 1
+          fi
+          
+          # workspace/이름/ 폴더 안의 모든 주차별 폴더 탐색
+          FILES_COPIED=0
+          
+          for week_dir in "$WORKSPACE_DIR"/week*; do
+            if [ -d "$week_dir" ]; then
+              WEEK_NAME=$(basename "$week_dir")
+              TARGET_DIR="${MONTH}/${WEEK_NAME}/${NAME}"
+              mkdir -p "$TARGET_DIR"
+              
+              # 해당 주차 폴더의 Java 파일들을 복사
+              find "$week_dir" -maxdepth 1 -name "*.java" -type f | while read -r file; do
+                filename=$(basename "$file")
+                # 이미 같은 이름의 파일이 있는지 확인
+                if [ -f "${TARGET_DIR}/${filename}" ]; then
+                  echo "⚠️  File ${filename} already exists in ${TARGET_DIR}, skipping..."
+                else
+                  cp "$file" "${TARGET_DIR}/${filename}"
+                  echo "✅ Copied ${filename} to ${TARGET_DIR}"
+                  FILES_COPIED=$((FILES_COPIED + 1))
+                fi
+              done
+            fi
+          done
+          
+          if [ $FILES_COPIED -eq 0 ]; then
+            echo "ℹ️  No Java files found to copy"
+            exit 0
           fi
           
           # 변경사항이 있는지 확인
           if [ -n "$(git status --porcelain)" ]; then
             git add "${MONTH}/"
-            git commit -m "📁 Auto organize: ${NAME} - ${MONTH}/week${WEEK}"
+            git commit -m "📁 Auto organize: ${NAME} - ${MONTH}월 (${FILES_COPIED}개 파일)"
             
             # main 브랜치로 체크아웃하고 병합
             git fetch origin main
             git checkout main
-            git merge --no-ff ${{ github.ref_name }} -m "Merge ${NAME}'s solutions for week${WEEK}"
+            git merge --no-ff ${{ github.ref_name }} -m "Merge ${NAME}'s solutions for ${MONTH}월"
             git push origin main
             
-            echo "✅ Files organized and pushed to main branch"
+            echo "✅ ${FILES_COPIED} files organized and pushed to main branch"
           else
             echo "ℹ️ No changes to commit"
           fi
