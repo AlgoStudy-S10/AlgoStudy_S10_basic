@@ -35,10 +35,11 @@
 # 각자의 브랜치로 체크아웃
 git checkout ksm  # 또는 jji, lkh, ish
 
-# workspace/이름/thisWeek/ 폴더에 Java 파일 추가
-# 예: workspace/김세민/thisWeek/BOJ_1234.java
+# workspace/이름/thisWeek/ 폴더 안에 Java 파일 작성
+# 예: workspace/김세민/thisWeek/BOJ_1234.java 파일 생성 및 코드 작성
 
-git add workspace/
+# 파일 추가 및 커밋
+git add workspace/김세민/thisWeek/
 git commit -m "[BOJ] 1234 문제명 - 김세민"
 git push origin ksm
 ```
