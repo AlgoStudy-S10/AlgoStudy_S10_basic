@@ -26,12 +26,12 @@ jobs:
       
       - name: Organize files
         run: |
-          # 브랜치 이름에 따른 이름 매핑
+          # 브랜치 이름에 따른 이름 및 PREFIX 매핑
           case "${{ github.ref_name }}" in
-            ksm) NAME="김세민" ;;
-            jji) NAME="장지인" ;;
-            ish) NAME="임성혁" ;;
-            lkh) NAME="이경호" ;;
+            ksm) NAME="김세민"; PREFIX="ksm" ;;
+            jji) NAME="장지인"; PREFIX="jji" ;;
+            ish) NAME="임성혁"; PREFIX="ish" ;;
+            lkh) NAME="이경호"; PREFIX="lkh" ;;
             *) echo "Unknown branch"; exit 1 ;;
           esac
           
@@ -62,11 +62,11 @@ jobs:
             exit 1
           fi
           
-          # thisWeek 폴더에 Java 파일이 있는지 확인
+          # thisWeek 폴더에 Java 파일이 있는지 확인 (template 폴더 제외, 최상위만)
           JAVA_FILES=$(find "$THIS_WEEK_DIR" -maxdepth 1 -name "*.java" -type f)
           
           if [ -z "$JAVA_FILES" ]; then
-            echo "ℹ️  No Java files found in $THIS_WEEK_DIR"
+            echo "ℹ️  No Java files found in $THIS_WEEK_DIR (template folder excluded)"
             exit 0
           fi
           
@@ -99,9 +99,22 @@ jobs:
             echo "📋 Copied ${filename} to ${CURRENT_WEEK_DIR}/${name_with_member}"
           done
           
-          # thisWeek 폴더 비우기
-          rm -f "$THIS_WEEK_DIR"/*.java
-          echo "🗑️  Cleaned up $THIS_WEEK_DIR"
+          # thisWeek 폴더 비우기 (단, PREFIX/template 폴더는 유지)
+          find "$THIS_WEEK_DIR" -maxdepth 1 -name "*.java" -type f -delete
+          echo "🗑️  Cleaned up $THIS_WEEK_DIR (keeping ${PREFIX}/template folder)"
+          
+          # template 폴더 초기화
+          TEMPLATE_FILE="${THIS_WEEK_DIR}/${PREFIX}/template/Main.java"
+          if [ -f "$TEMPLATE_FILE" ]; then
+            echo "package ${PREFIX}.template;
+
+public class Main{
+	public static void main(String args[]){
+
+	}
+}" > "$TEMPLATE_FILE"
+            echo "🔄 Reset template file: $TEMPLATE_FILE"
+          fi
           
           # 변경사항이 있는지 확인
           if [ -n "$(git status --porcelain)" ]; then
