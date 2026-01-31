@@ -106,15 +106,7 @@ jobs:
           # template 폴더 초기화
           TEMPLATE_FILE="${THIS_WEEK_DIR}/${PREFIX}/template/Main.java"
           if [ -f "$TEMPLATE_FILE" ]; then
-            cat > "$TEMPLATE_FILE" <<TEMPLATE_EOF
-package ${PREFIX}.template;
-
-public class Main{
-	public static void main(String args[]){
-
-	}
-}
-TEMPLATE_EOF
+            printf "package %s.template;\n\npublic class Main{\n\tpublic static void main(String args[]){\n\n\t}\n}\n" "$PREFIX" > "$TEMPLATE_FILE"
             echo "🔄 Reset template file: $TEMPLATE_FILE"
           fi
           
