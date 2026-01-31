@@ -1,0 +1,31 @@
+#!/bin/bash
+
+TEMPLATE_CODE='public class Main{
+	public static void main(String args[]){
+
+	}
+}'
+
+MEMBERS=("김세민" "장지인" "이경호" "임성혁")
+
+for member in "${MEMBERS[@]}"; do
+    TEMPLATE_DIR="workspace/$member/thisWeek/template"
+    TEMPLATE_FILE="$TEMPLATE_DIR/Main.java"
+    THISWEEK_DIR="workspace/$member/thisWeek"
+    
+    if [ -f "$TEMPLATE_FILE" ]; then
+        TEMPLATE_CONTENT=$(cat "$TEMPLATE_FILE")
+        
+        if [ "$TEMPLATE_CONTENT" != "$TEMPLATE_CODE" ]; then
+            STAGED_FILES=$(git diff --cached --name-only --diff-filter=A "$THISWEEK_DIR" | grep -v "template/")
+            
+            if [ -n "$STAGED_FILES" ]; then
+                echo "$TEMPLATE_CODE" > "$TEMPLATE_FILE"
+                git add "$TEMPLATE_FILE"
+                echo "✅ 템플릿 초기화: $member"
+            fi
+        fi
+    fi
+done
+
+exit 0
