@@ -1,15 +1,7 @@
 package ksm.template;
 
-import java.io.*;
-import java.util.*;
-
 public class Main {
-    public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int n = Integer.parseInt(br.readLine());
-        
-        // 월/주차 구조 테스트
-        System.out.println("테스트 결과: " + (n + 100));
-        br.close();
+    public static void main(String[] args){
+   
     }
 }
