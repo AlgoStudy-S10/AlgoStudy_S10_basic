@@ -2,10 +2,10 @@ name: Update Study Dashboard
 
 on:
   push:
-    branches: [ "main" ]  # main 브랜치에 푸시될 때마다 실행
+    branches: [ "main" ]
     paths:
-      - '**.java'       # 자바 파일이 올라왔을 때
-      - 'stats.py'      # 스크립트가 수정됐을 때
+      - '**.md'          # .md 파일이 올라왔을 때
+      - 'stats.py'       # 스크립트가 수정됐을 때
 
 permissions:
   contents: write

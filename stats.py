@@ -10,36 +10,54 @@ def update_readme():
     table_divider = "| :---: | :---: | " + " | ".join([":---:" for _ in MEMBERS]) + " |\n"
     table_content = ""
 
-    # 2. 폴더 탐색 (월/주차/이름 구조)
-    # 현재 위치의 모든 폴더 중 숫자로 된 폴더(예: 02, 03)만 찾음
-    months = sorted([d for d in os.listdir('.') if os.path.isdir(d) and d.isdigit()])
-
-    for month in months:
-        # 해당 월 폴더 안에서 'week'로 시작하는 폴더 찾기
-        month_path = os.path.join(month)
-        weeks = sorted([d for d in os.listdir(month_path) if os.path.isdir(os.path.join(month_path, d)) and d.lower().startswith("week")])
+    # 2. 폴더 탐색 (workspace/이름/월/주차 구조)
+    workspace_path = "workspace"
+    
+    if not os.path.exists(workspace_path):
+        return
+    
+    # 모든 월/주차 조합 수집
+    week_data = {}
+    
+    for member in MEMBERS:
+        member_workspace = os.path.join(workspace_path, member)
+        if not os.path.exists(member_workspace):
+            continue
         
-        for week in weeks:
-            row = f"| {month}월 | {week} |"
+        # 월 폴더 찾기 (숫자로 된 폴더만)
+        months = [d for d in os.listdir(member_workspace) if os.path.isdir(os.path.join(member_workspace, d)) and d.isdigit()]
+        
+        for month in months:
+            month_path = os.path.join(member_workspace, month)
+            # week 폴더 찾기
+            weeks = [d for d in os.listdir(month_path) if os.path.isdir(os.path.join(month_path, d)) and d.lower().startswith("week")]
             
-            for member in MEMBERS:
-                member_path = os.path.join(month, week, member)
-                solved_count = 0
+            for week in weeks:
+                week_key = (month, week)
+                if week_key not in week_data:
+                    week_data[week_key] = {}
                 
-                # 멤버 폴더가 있고, 그 안에 .java 파일이 몇 개인지 확인
-                if os.path.exists(member_path):
-                    files = [f for f in os.listdir(member_path) if f.endswith(".java")]
-                    solved_count = len(files)
-                
-                # 이모지로 상태 표시 (2문제 이상=💯, 1문제=✅, 0문제=➖)
-                if solved_count >= 2:
-                    row += f" 💯 ({solved_count}) |"
-                elif solved_count > 0:
-                    row += f" ✅ ({solved_count}) |"
-                else:
-                    row += " ➖ |"
+                week_path = os.path.join(month_path, week)
+                # .md 파일 개수 세기
+                md_files = [f for f in os.listdir(week_path) if f.endswith(".md")]
+                week_data[week_key][member] = len(md_files)
+    
+    # 월/주차별로 정렬하여 테이블 생성
+    for (month, week) in sorted(week_data.keys()):
+        row = f"| {month}월 | {week} |"
+        
+        for member in MEMBERS:
+            solved_count = week_data[(month, week)].get(member, 0)
             
-            table_content += row + "\n"
+            # 이모지로 상태 표시 (2문제 이상=💯, 1문제=✅, 0문제=➖)
+            if solved_count >= 2:
+                row += f" 💯 ({solved_count}) |"
+            elif solved_count > 0:
+                row += f" ✅ ({solved_count}) |"
+            else:
+                row += " ➖ |"
+        
+        table_content += row + "\n"
 
     # 3. README.md 업데이트
     readme_path = "README.md"

@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/AlgoStudy-S10.iml" filepath="$PROJECT_DIR$/.idea/AlgoStudy-S10.iml" />
+      <module fileurl="file://$PROJECT_DIR$/weeklyCode/weeklyCode.iml" filepath="$PROJECT_DIR$/weeklyCode/weeklyCode.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/김세민/김세민.iml" filepath="$PROJECT_DIR$/workspace/김세민/김세민.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/이경호/이경호.iml" filepath="$PROJECT_DIR$/workspace/이경호/이경호.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/임성혁/임성혁.iml" filepath="$PROJECT_DIR$/workspace/임성혁/임성혁.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/장지인/장지인.iml" filepath="$PROJECT_DIR$/workspace/장지인/장지인.iml" />
     </modules>
   </component>
 </project>

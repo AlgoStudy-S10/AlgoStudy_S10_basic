@@ -53,20 +53,48 @@ jobs:
           
           WEEK=$(( (COMMIT_DAY - 1) / 7 + 1 ))
           
-          # workspace/이름/thisWeek 폴더 확인
-          WORKSPACE_DIR="workspace/${NAME}"
-          THIS_WEEK_DIR="${WORKSPACE_DIR}/thisWeek"
+          # 커밋 메시지에서 문제 정보 추출
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "📝 Commit message: $COMMIT_MSG"
           
-          if [ ! -d "$THIS_WEEK_DIR" ]; then
-            echo "❌ Error: $THIS_WEEK_DIR not found"
+          # 커밋 메시지 파싱: [플랫폼] 문제번호 문제명 (선택)
+          # 예: [BOJ] 1234, [BOJ] 1234 요세푸스 문제, [PGS] 43162 네트워크
+          if [[ $COMMIT_MSG =~ \[([A-Z]+)\][[:space:]]+([0-9]+)([[:space:]]+(.+))? ]]; then
+            PLATFORM="${BASH_REMATCH[1]}"
+            PROBLEM_NUM="${BASH_REMATCH[2]}"
+            PROBLEM_NAME="${BASH_REMATCH[4]}"
+            
+            # 문제명이 있으면 사용, 없으면 빈 문자열
+            if [ -n "$PROBLEM_NAME" ]; then
+              # 문제명에서 " - 이름" 부분 제거
+              PROBLEM_NAME=$(echo "$PROBLEM_NAME" | sed 's/ - .*//')
+              FILE_BASE="${PLATFORM}_${PROBLEM_NUM}_${PROBLEM_NAME}"
+            else
+              FILE_BASE="${PLATFORM}_${PROBLEM_NUM}"
+            fi
+            
+            echo "✅ Parsed: Platform=$PLATFORM, Number=$PROBLEM_NUM, Name=$PROBLEM_NAME"
+          else
+            echo "⚠️  Could not parse commit message. Expected format: [PLATFORM] NUMBER [TITLE]"
+            echo "   Example: [BOJ] 1234 or [BOJ] 1234 요세푸스 문제"
             exit 1
           fi
           
-          # thisWeek 폴더에 Java 파일이 있는지 확인 (template 폴더 제외, 최상위만)
-          JAVA_FILES=$(find "$THIS_WEEK_DIR" -maxdepth 1 -name "*.java" -type f)
+          # workspace/이름/template 폴더 확인
+          WORKSPACE_DIR="workspace/${NAME}"
+          TEMPLATE_DIR="${WORKSPACE_DIR}/template"
           
-          if [ -z "$JAVA_FILES" ]; then
-            echo "ℹ️  No Java files found in $THIS_WEEK_DIR (template folder excluded)"
+          if [ ! -d "$TEMPLATE_DIR" ]; then
+            echo "❌ Error: $TEMPLATE_DIR not found"
+            exit 1
+          fi
+          
+          # Main.java가 수정되었는지 확인
+          MAIN_FILE="${TEMPLATE_DIR}/Main.java"
+          if ! git diff --quiet HEAD~1 HEAD -- "$MAIN_FILE"; then
+            echo "✅ Main.java has been modified"
+          else
+            echo "ℹ️  Main.java has not been modified, nothing to organize"
             exit 0
           fi
           
@@ -77,42 +105,48 @@ jobs:
           mkdir -p "$TARGET_DIR"
           mkdir -p "$CURRENT_WEEK_DIR"
           
-          # thisWeek 폴더의 Java 파일들을 복사
-          FILES_COPIED=0
+          # Main.java를 파싱된 파일명으로 .md 형식으로 저장
+          md_name="${FILE_BASE}.md"
+          name_with_member="${FILE_BASE}_${NAME}.md"
           
-          find "$THIS_WEEK_DIR" -maxdepth 1 -name "*.java" -type f | while read -r file; do
-            filename=$(basename "$file")
-            base_name="${filename%.java}"
-            name_with_member="${base_name}_${NAME}.java"
-            
-            # 월/주차/이름 폴더에 복사
-            if [ -f "${TARGET_DIR}/${filename}" ]; then
-              echo "⚠️  File ${filename} already exists in ${TARGET_DIR}, skipping..."
-            else
-              cp "$file" "${TARGET_DIR}/${filename}"
-              echo "✅ Copied ${filename} to ${TARGET_DIR}"
-              FILES_COPIED=$((FILES_COPIED + 1))
-            fi
-            
-            # weeklyCode 폴더에 이름 포함된 파일명으로 복사
-            cp "$file" "${CURRENT_WEEK_DIR}/${name_with_member}"
-            echo "📋 Copied ${filename} to ${CURRENT_WEEK_DIR}/${name_with_member}"
-          done
+          # Java 파일 내용을 Markdown 코드 블록으로 변환
+          {
+            echo '```java'
+            cat "$MAIN_FILE"
+            echo '```'
+          } > "/tmp/${md_name}"
           
-          # thisWeek 폴더 비우기 (단, PREFIX/template 폴더는 유지)
-          find "$THIS_WEEK_DIR" -maxdepth 1 -name "*.java" -type f -delete
-          echo "🗑️  Cleaned up $THIS_WEEK_DIR (keeping ${PREFIX}/template folder)"
+          # 월/주차 폴더에 복사
+          if [ -f "${TARGET_DIR}/${md_name}" ]; then
+            echo "⚠️  File ${md_name} already exists in ${TARGET_DIR}, overwriting..."
+          fi
+          cp "/tmp/${md_name}" "${TARGET_DIR}/${md_name}"
+          echo "✅ Copied ${md_name} to ${TARGET_DIR}"
           
-          # template 폴더 초기화
-          TEMPLATE_FILE="${THIS_WEEK_DIR}/${PREFIX}/template/Main.java"
-          if [ -f "$TEMPLATE_FILE" ]; then
-            printf "package %s.template;\n\npublic class Main{\n\tpublic static void main(String args[]){\n\n\t}\n}\n" "$PREFIX" > "$TEMPLATE_FILE"
-            echo "🔄 Reset template file: $TEMPLATE_FILE"
+          # weeklyCode 폴더에 이름 포함된 파일명으로 복사
+          cp "/tmp/${md_name}" "${CURRENT_WEEK_DIR}/${name_with_member}"
+          echo "📋 Copied ${name_with_member} to ${CURRENT_WEEK_DIR}"
+          
+          echo "🗑️  Solution saved as .md format"
+          
+          # Main.java 파일 초기화
+          MAIN_FILE="${TEMPLATE_DIR}/Main.java"
+          if [ -f "$MAIN_FILE" ]; then
+            cat > "$MAIN_FILE" << MAINEOF
+package ${PREFIX}.template;
+
+public class Main {
+    public static void main(String[] args){
+   
+    }
+}
+MAINEOF
+            echo "🔄 Reset Main.java to initial state"
           fi
           
           # 변경사항이 있는지 확인
           if [ -n "$(git status --porcelain)" ]; then
-            git add "$WORKSPACE_DIR/" "weeklyCode/" "$THIS_WEEK_DIR"
+            git add "$WORKSPACE_DIR/" "weeklyCode/"
             git commit -m "📁 Auto organize: ${NAME} - ${MONTH}월 week${WEEK}"
             
             # main 브랜치로 체크아웃하고 병합

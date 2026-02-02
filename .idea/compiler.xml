@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="김세민" options="--release 11" />
+      <module name="장지인" options="--release 11" />
+      <module name="이경호" options="--release 11" />
+      <module name="임성혁" options="--release 11" />
+    </option>
+  </component>
+</project>
