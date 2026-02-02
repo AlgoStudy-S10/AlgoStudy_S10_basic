@@ -75,9 +75,8 @@ jobs:
             
             echo "✅ Parsed: Platform=$PLATFORM, Number=$PROBLEM_NUM, Name=$PROBLEM_NAME"
           else
-            echo "⚠️  Could not parse commit message. Expected format: [PLATFORM] NUMBER [TITLE]"
-            echo "   Example: [BOJ] 1234 or [BOJ] 1234 요세푸스 문제"
-            exit 1
+            echo "ℹ️  Not a problem submission commit (no [PLATFORM] NUMBER format found). Skipping organization."
+            exit 0
           fi
           
           # workspace/이름/PREFIX/template 폴더 확인
