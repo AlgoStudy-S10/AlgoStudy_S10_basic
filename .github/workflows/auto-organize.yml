@@ -132,7 +132,7 @@ jobs:
           # Main.java 파일 초기화
           MAIN_FILE="${TEMPLATE_DIR}/Main.java"
           if [ -f "$MAIN_FILE" ]; then
-            printf "package %s.template;\n\npublic class Main {\n    public static void main(String[] args){\n   \n    }\n}\n" "$PREFIX" > "$MAIN_FILE"
+            printf "package template;\n\npublic class Main {\n    public static void main(String[] args){\n   \n    }\n}\n" > "$MAIN_FILE"
             echo "🔄 Reset Main.java to initial state"
           fi
           
