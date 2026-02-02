@@ -80,9 +80,9 @@ jobs:
             exit 1
           fi
           
-          # workspace/이름/template 폴더 확인
+          # workspace/이름/PREFIX/template 폴더 확인
           WORKSPACE_DIR="workspace/${NAME}"
-          TEMPLATE_DIR="${WORKSPACE_DIR}/template"
+          TEMPLATE_DIR="${WORKSPACE_DIR}/${PREFIX}/template"
           
           if [ ! -d "$TEMPLATE_DIR" ]; then
             echo "❌ Error: $TEMPLATE_DIR not found"
@@ -132,7 +132,7 @@ jobs:
           # Main.java 파일 초기화
           MAIN_FILE="${TEMPLATE_DIR}/Main.java"
           if [ -f "$MAIN_FILE" ]; then
-            printf "package template;\n\npublic class Main {\n    public static void main(String[] args){\n   \n    }\n}\n" > "$MAIN_FILE"
+            printf "package %s.template;\n\npublic class Main {\n    public static void main(String[] args){\n   \n    }\n}\n" "$PREFIX" > "$MAIN_FILE"
             echo "🔄 Reset Main.java to initial state"
           fi
           
