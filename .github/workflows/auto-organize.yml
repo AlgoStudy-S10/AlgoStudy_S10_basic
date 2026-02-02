@@ -101,7 +101,7 @@ jobs:
           # 주차 이름 생성
           WEEK_NAME="week${WEEK}"
           TARGET_DIR="${WORKSPACE_DIR}/${MONTH}/${WEEK_NAME}"
-          CURRENT_WEEK_DIR="weeklyCode/${WEEK_NAME}"
+          CURRENT_WEEK_DIR="weeklyCode/${MONTH}/${WEEK_NAME}"
           mkdir -p "$TARGET_DIR"
           mkdir -p "$CURRENT_WEEK_DIR"
           
