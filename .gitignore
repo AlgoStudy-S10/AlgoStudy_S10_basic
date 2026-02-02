@@ -25,9 +25,9 @@ replay_pid*
 
 # IntelliJ IDEA
 out/
-/*.iml
-!workspace/**/*.iml
-!weeklyCode/**/*.iml
+*.iml
 .idea/workspace.xml
 .idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/shelf/
 workspace_backup/
