@@ -1,12 +1,15 @@
 package ksm.template;
 
+import java.io.*;
 import java.util.*;
 
 public class Main {
-    public static void main(String[] args){
-        Scanner sc = new Scanner(System.in);
-        int n = sc.nextInt();
-        System.out.println("BOJ 9999 워크플로우 테스트 풀이 결과: " + (n * 2));
-        sc.close();
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int n = Integer.parseInt(br.readLine());
+        
+        // 월/주차 구조 테스트
+        System.out.println("테스트 결과: " + (n + 100));
+        br.close();
     }
 }
