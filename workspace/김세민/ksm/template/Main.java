@@ -36,6 +36,7 @@ public class Main {
         System.out.println(answer);
     }
 
+
     public static int[] bfs(ArrayList<Line>[] tree, int startNode) {
         Deque<Integer> q = new ArrayDeque<>();
         Deque<Integer> w = new ArrayDeque<>();
