@@ -1,71 +1,117 @@
 package lkh.template;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class Main {
-    static int N;
-    static Map<Integer, List<Edge>> tree = new HashMap<>();
-    static boolean[] visited;
-    static int maxDist = 0;
-    static int farthestNode = 0;
 
-    public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        N = Integer.parseInt(br.readLine());
-        
-        if (N == 1) {
-            System.out.println(0);
-            return;
-        }
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		
+		Node root = null;
+		while (true) {
+			int cur;
+			try {
+				cur = Integer.parseInt(br.readLine());
+			} catch (Exception e) {
+				break;
+			}
+			
+			Node curNode = new Node(cur);
+			if (root == null) {
+				root = curNode;
+				continue;
+			}
+			
+			if (!addNode(root, curNode))
+				return;
+		}
+		
+		printPostOrder(root);
+	}
+	
+	public static void printPostOrder(Node node) {
+		if (node == null)
+			return;
+		
+		if (!node.isLeftEmpty())
+			printPostOrder(node.left);
+		
+		if (!node.isRightEmpty())
+			printPostOrder(node.right);
+		
+		System.out.println(node.value);
+	}
+		
+	// start = root 노드로 생각하고 add하기
+	public static boolean addNode(Node start, Node node) {
+		boolean done = false;
+		while (!done) {
+			if (start.value > node.value) {
+				if (start.isLeftEmpty()) {
+					start.setLeft(node);
+					done = true;
+				}
+				else
+					start = start.left;
+			}
+			else if (start.value < node.value) {
+				if (start.isRightEmpty()) {
+					start.setRight(node);
+					done = true;
+				}
+				else
+					start = start.right;
+			}
+			else
+				return false;
+		}
+		
+		return true;
+	}
+	
+	static class Node {
+		int value;
+		Node left;
+		Node right;
+		
+		Node() { }
+		
+		Node(int value) {
+			this.value = value;
+		}
 
-        for (int i = 0; i < N - 1; i++) {
-            StringTokenizer st = new StringTokenizer(br.readLine());
-            int u = Integer.parseInt(st.nextToken());
-            int v = Integer.parseInt(st.nextToken());
-            int w = Integer.parseInt(st.nextToken());
+		public int getValue() {
+			return value;
+		}
 
-            tree.computeIfAbsent(u, k -> new ArrayList<>()).add(new Edge(v, w));
-            tree.computeIfAbsent(v, k -> new ArrayList<>()).add(new Edge(u, w));
-        }
-        
-        // 1. 루트 노드에서 가장 먼 노드 찾기
-        visited = new boolean[N + 1];
-        visited[1] = true;
-        dfs(1, 0);
-        
-        // 2. 1번에서 찾은 가장 먼 노드에서 다시 제일 먼 곳 찾기
-        visited = new boolean[N + 1];
-        visited[farthestNode] = true;
-        maxDist = 0; // 거리 초기화
-        dfs(farthestNode, 0);
-        
-        System.out.println(maxDist);
-    }
-    
-    public static void dfs(int node, int currentDist) {
-        if (currentDist > maxDist) {
-            maxDist = currentDist;
-            farthestNode = node;
-        }
-        
-        if (!tree.containsKey(node)) return;
+		public void setValue(int value) {
+			this.value = value;
+		}
 
-        for (Edge next : tree.get(node)) {
-            if (!visited[next.to]) {
-                visited[next.to] = true;
-                dfs(next.to, currentDist + next.weight);
-                // 돌아올 때 visited=false 안 해도 됨 (지름 구하기 2번 돌리니까)
-            }
-        }
-    }
-    
-    static class Edge {
-        int to, weight;
-        
-        Edge(int to, int weight) {
-            this.to = to;
-            this.weight = weight;
-        }
-    }
+		public Node getLeft() {
+			return left;
+		}
+
+		public void setLeft(Node left) {
+			this.left = left;
+		}
+
+		public Node getRight() {
+			return right;
+		}
+
+		public void setRight(Node right) {
+			this.right = right;
+		}
+		
+		public boolean isLeftEmpty() {
+			return this.left == null;
+		}
+		
+		public boolean isRightEmpty() {
+			return this.right == null;
+		}
+	}
 }
