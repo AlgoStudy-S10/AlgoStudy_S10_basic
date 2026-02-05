@@ -1,7 +1,48 @@
 package jji.template;
 
+import java.io.*;
+
 public class Main {
-    public static void main(String[] args){
-        System.out.println("test");
-    }
+	static Node root;
+	static class Node{
+		int num;
+		Node left, right, parent;
+		Node(int num) {this.num = num;}
+	}
+	
+	static void addNode(Node pre, int num) {
+		if (num < pre.num) {
+			// 루트보다 작으면 왼쪽
+			if (pre.left == null) pre.left = new Node(num);
+			else addNode(pre.left, num);
+		} else {
+			if (pre.right == null) pre.right = new Node(num);
+			else addNode(pre.right, num);
+		}
+	}
+	
+	static void postOrder(Node n) {
+		if (n != null) {
+			postOrder(n.left);
+			postOrder(n.right);
+			System.out.println(n.num);
+		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		String line = br.readLine();
+	    if (line == null) return;
+	    
+	    root = new Node(Integer.parseInt(line));
+	    
+	    while ((line = br.readLine()) != null && !line.isEmpty()) {
+	    	int num = Integer.parseInt(line);
+	    	addNode(root, num);
+	    }
+		
+	    postOrder(root);
+	}
+	
 }
