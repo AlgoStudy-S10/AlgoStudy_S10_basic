@@ -1,48 +1,70 @@
 package jji.template;
 
 import java.io.*;
+import java.util.*;
 
 public class Main {
-	static Node root;
-	static class Node{
-		int num;
-		Node left, right, parent;
-		Node(int num) {this.num = num;}
+	
+	static class Edge {
+		int t; // 어디에 연결되었는가
+		int w; // 가중치
+		public Edge(int t, int w) {
+			this.t = t;
+			this.w = w;
+			
+		}
+		
 	}
 	
-	static void addNode(Node pre, int num) {
-		if (num < pre.num) {
-			// 루트보다 작으면 왼쪽
-			if (pre.left == null) pre.left = new Node(num);
-			else addNode(pre.left, num);
-		} else {
-			if (pre.right == null) pre.right = new Node(num);
-			else addNode(pre.right, num);
+	static ArrayList<Edge>[] tree;
+	static int globalMax = 0;
+	static boolean[] visited;
+	static int dfs(int idx) {
+		visited[idx] = true;
+		
+		int max1 = 0;
+		int max2 = 0;
+		// 해당 노드의 자식노드 모두에 대해서 가장 큰 두 값을 찾아야 함.
+		for (Edge e : tree[idx]) {
+			if (visited[e.t]) continue; // 이미 방문한 노드면 넘기기
+			int cur = dfs(e.t) + e.w;
+			
+			if (cur > max1) {
+				max2 = max1;
+				max1 = cur;
+			} else if (cur > max2) {
+				max2 = cur;
+			}
 		}
-	}
-	
-	static void postOrder(Node n) {
-		if (n != null) {
-			postOrder(n.left);
-			postOrder(n.right);
-			System.out.println(n.num);
-		}
+		globalMax = (max1 + max2) > globalMax ? (max1 + max2) : globalMax;
+		
+		return Math.max(max1, max2);
 	}
 	
 	public static void main(String[] args) throws Exception {
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		String line = br.readLine();
-	    if (line == null) return;
-	    
-	    root = new Node(Integer.parseInt(line));
-	    
-	    while ((line = br.readLine()) != null && !line.isEmpty()) {
-	    	int num = Integer.parseInt(line);
-	    	addNode(root, num);
-	    }
+		StringTokenizer st = new StringTokenizer(br.readLine());
 		
-	    postOrder(root);
+		int N = Integer.parseInt(st.nextToken());
+		tree = (ArrayList<Edge>[]) new ArrayList[N + 1];
+		visited = new boolean[N+1];
+		
+		for (int i=1; i<N+1; i++) {
+			tree[i] = new ArrayList<>();
+		}
+		
+		for (int i=1; i<N; i++) {
+			st = new StringTokenizer(br.readLine());
+			int node = Integer.parseInt(st.nextToken());
+			int target = Integer.parseInt(st.nextToken());
+			int weight = Integer.parseInt(st.nextToken());
+			tree[node].add(new Edge(target, weight));
+			tree[target].add(new Edge(node, weight)); // 양방향입력
+		}
+		dfs(1);
+		System.out.println(globalMax);
+		
 	}
 	
 }
