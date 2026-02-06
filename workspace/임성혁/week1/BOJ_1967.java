@@ -1,9 +1,9 @@
-package ish.template;
+package week1;
 
 import java.io.*;
 import java.util.*;
 
-public class Main {
+public class BOJ_1967 {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     static StringTokenizer st;
     static int max, total;
