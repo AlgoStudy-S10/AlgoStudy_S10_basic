@@ -1,23 +1,36 @@
-package ish.template;
+package week1;
 
 import java.io.*;
 import java.util.*;
 
-public class Main {
+public class BOJ_5639_trial2 {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     static class Node{ // 트리 노드 정의
         int value;
-        Node left;
-        Node right;
-        Node parent;
+        Node left, right;
 
         Node(int value){
             this.value = value;
         }
+
+        void insert(int num){
+            if(num< this.value){
+                if(this.left == null){
+                    this.left = new Node(num);
+                }else{
+                    this.left.insert(num);
+                }
+            }else{
+                if(this.right == null){
+                    this.right = new Node(num);
+                }else{
+                    this.right.insert(num);
+                }
+            }
+        }
     }
     static Node root;
-    static Node current;
     static StringBuilder sb;
 
     public static void main(String[] args) throws IOException{
@@ -26,26 +39,11 @@ public class Main {
         while((line = br.readLine()) != null && !line.isEmpty()){ // 입력으로 각 줄에 나오는 숫자 처리
             int num = Integer.parseInt(line.trim());
             if(root == null){ // root 기입
-                root = new Node(num);
-                current = root;
-                root.parent = new Node(Integer.MAX_VALUE); // 가상의 최대값을 넣어서 right 체크에서 문제가 없도록 함
+                root = new Node(num); // 가상의 최대값을 넣어서 right 체크에서 문제가 없도록 함
                 continue;
             }
-            while(true){
-                if(num<current.value){ // left
-                    current.left = new Node(num);
-                    current.left.parent = current;
-                    current = current.left;
-                    break;
-                }else if(num<current.parent.value){ // right
-                    current.right = new Node(num);
-                    current.right.parent = current;
-                    current = current.right;
-                    break;
-                }else{
-                    current = current.parent;
-                }
-            }
+            
+            root.insert(num);
         }
 
         dfs(root);

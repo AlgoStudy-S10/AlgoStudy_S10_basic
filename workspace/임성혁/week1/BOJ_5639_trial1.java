@@ -1,9 +1,9 @@
-package ish.template;
+package week1;
 
 import java.io.*;
 import java.util.*;
 
-public class Main {
+public class BOJ_5639_trial1 {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     static class Node{ // 트리 노드 정의
