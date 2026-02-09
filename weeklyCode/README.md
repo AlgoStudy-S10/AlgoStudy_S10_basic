@@ -10,6 +10,7 @@ weeklyCode/
 │   ├── BOJ_1234_장지인.java
 │   ├── BOJ_1234_이경호.java
 │   ├── BOJ_1234_임성혁.java
+│   ├── BOJ_1234_이정헌.java
 │   └── ...
 ├── week2/
 └── ...
