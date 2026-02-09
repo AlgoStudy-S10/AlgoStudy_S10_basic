@@ -2,7 +2,7 @@ import os
 import datetime
 
 # 스터디원 이름 (폴더명과 정확히 일치해야 함)
-MEMBERS = ["장지인", "김세민", "이경호", "임성혁"]
+MEMBERS = ["장지인", "김세민", "이경호", "임성혁", "이정헌"]
 
 def update_readme():
     # 1. 표 헤더 만들기

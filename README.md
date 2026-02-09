@@ -8,9 +8,9 @@
 ## 📊 주차별 풀이 현황
 
 <!-- STATS_TABLE_START -->
-| 월 | 주차 | 장지인 | 김세민 | 이경호 | 임성혁 |
-| :---: | :---: | :---: | :---: | :---: | :---: |
-| 02월 | week1 | 💯 (3) | 💯 (2) | 💯 (2) | 💯 (2) |
+| 월 | 주차 | 장지인 | 김세민 | 이경호 | 임성혁 | 이정헌 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 02월 | week1 | 💯 (3) | 💯 (2) | 💯 (2) | 💯 (2) | ➖ |
 <!-- STATS_TABLE_END -->
 
 <br>
@@ -30,30 +30,31 @@
 - **장지인**: `jji` 브랜치
 - **이경호**: `lkh` 브랜치
 - **임성혁**: `ish` 브랜치
+- **이정헌**: `ljh` 브랜치
 
 ### 2. 파일 추가
 ```bash
 # 각자의 브랜치로 체크아웃
-git checkout ksm  # 또는 jji, lkh, ish
+git checkout ksm  # 또는 jji, lkh, ish, ljh
 
-# workspace/이름/thisWeek/ 폴더 안에 Java 파일 작성
-# 예: workspace/김세민/thisWeek/BOJ_1234.java 파일 생성 및 코드 작성
+# workspace/이름/이니셜/template/Main.java 파일에 코드 작성
+# 예: workspace/김세민/ksm/template/Main.java
 
 # 파일 추가 및 커밋
-git add workspace/김세민/thisWeek/
-git commit -m "[BOJ] 1234 문제명 - 김세민"
+git add workspace/김세민/ksm/template/Main.java
+git commit -m "[BOJ] 1234 문제명"
 git push origin ksm
 ```
 
 ### 3. 자동 처리
 GitHub Actions가 자동으로:
-- ✅ `workspace/이름/월/주차/` 폴더로 복사 (예: `workspace/김세민/01/week5/`)
-- ✅ `weeklyCode/주차/` 폴더로 복사 (파일명에 이름 포함)
-- ✅ `thisWeek` 폴더 비우기
+- ✅ `workspace/이름/월/주차/` 폴더로 복사 (예: `workspace/김세민/02/week1/`)
+- ✅ `weeklyCode/월/주차/` 폴더로 복사 (파일명에 이름 포함)
+- ✅ `template/Main.java` 초기화
 - ✅ main 브랜치에 자동 merge
 
 ### 4. 코드 리뷰
-- `weeklyCode/week5/` 폴더에서 모든 스터디원의 코드를 한눈에 확인
+- `weeklyCode/월/주차/` 폴더에서 모든 스터디원의 코드를 한눈에 확인
 - 같은 문제에 대한 다양한 풀이 비교
 
 <br>
@@ -64,14 +65,16 @@ GitHub Actions가 자동으로:
 AlgoStudy_S10_basic/
 ├── workspace/
 │   ├── 김세민/
-│   │   ├── template/
-│   │   │   └── Main.java       # 문제 풀이 작성 파일
+│   │   ├── ksm/
+│   │   │   └── template/
+│   │   │       └── Main.java   # 문제 풀이 작성 파일
 │   │   ├── 02/
 │   │   │   └── week1/          # 자동 정리된 .md 파일
 │   │   └── 김세민.iml
 │   ├── 장지인/
 │   ├── 이경호/
-│   └── 임성혁/
+│   ├── 임성혁/
+│   └── 이정헌/
 └── weeklyCode/                  # 모든 스터디원 코드 모음
     ├── 02/
     │   └── week1/
@@ -108,3 +111,4 @@ AlgoStudy_S10_basic/
 - 김세민 (ksm)
 - 이경호 (lkh)
 - 임성혁 (ish)
+- 이정헌 (ljh)

@@ -7,6 +7,7 @@ on:
       - jji
       - ish
       - lkh
+      - ljh
 
 jobs:
   organize:
@@ -32,6 +33,7 @@ jobs:
             jji) NAME="장지인"; PREFIX="jji" ;;
             ish) NAME="임성혁"; PREFIX="ish" ;;
             lkh) NAME="이경호"; PREFIX="lkh" ;;
+            ljh) NAME="이정헌"; PREFIX="ljh" ;;
             *) echo "Unknown branch"; exit 1 ;;
           esac
           
