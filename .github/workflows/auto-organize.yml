@@ -137,6 +137,30 @@ jobs:
             echo "🔄 Reset Main.java to initial state"
           fi
           
+          # Webhook 전송 (JSON 데이터)
+          WEBHOOK_URL="https://auto.leo0409.work/webhook-test/943392e7-ac14-49c8-96ad-3f437e790c29"
+          
+          # JSON 데이터 생성
+          # 문제명이 비어있을 경우를 대비해 처리
+          SAFE_PROBLEM_NAME=$(echo "$PROBLEM_NAME" | sed 's/"/\\"/g')
+          
+          JSON_DATA=$(cat <<EOF
+          {
+            "name": "$NAME",
+            "platform": "$PLATFORM",
+            "problemNumber": "$PROBLEM_NUM",
+            "problemName": "$SAFE_PROBLEM_NAME",
+            "week": "$WEEK",
+            "month": "$MONTH"
+          }
+          EOF
+          )
+          
+          echo "🚀 Sending webhook to $WEBHOOK_URL"
+          echo "Payload: $JSON_DATA"
+          
+          curl -X POST -H "Content-Type: application/json" -d "$JSON_DATA" "$WEBHOOK_URL"
+          
           # 변경사항이 있는지 확인
           if [ -n "$(git status --porcelain)" ]; then
             git add "$WORKSPACE_DIR/" "weeklyCode/"
