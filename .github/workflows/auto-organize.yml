@@ -53,14 +53,16 @@ jobs:
             COMMIT_DAY=$(date -j -f "%Y-%m-%d" "$COMMIT_DATE" +%d)
           fi
           
-          WEEK=$(( (COMMIT_DAY - 1) / 7 + 1 ))
+          # ---------------------------------------------------------
+          # [수정됨] 08, 09일 에러 방지를 위해 10진수(10#)로 강제 변환
+          # ---------------------------------------------------------
+          WEEK=$(( (10#$COMMIT_DAY - 1) / 7 + 1 ))
           
           # 커밋 메시지에서 문제 정보 추출
           COMMIT_MSG=$(git log -1 --pretty=%B)
           echo "📝 Commit message: $COMMIT_MSG"
           
           # 커밋 메시지 파싱: [플랫폼] 문제번호 문제명 (선택)
-          # 예: [BOJ] 1234, [BOJ] 1234 요세푸스 문제, [PGS] 43162 네트워크
           if [[ $COMMIT_MSG =~ \[([A-Z]+)\][[:space:]]+([0-9]+)([[:space:]]+(.+))? ]]; then
             PLATFORM="${BASH_REMATCH[1]}"
             PROBLEM_NUM="${BASH_REMATCH[2]}"
@@ -141,7 +143,6 @@ jobs:
           WEBHOOK_URL="https://auto.leo0409.work/webhook/943392e7-ac14-49c8-96ad-3f437e790c29"
           
           # JSON 데이터 생성
-          # 문제명이 비어있을 경우를 대비해 처리
           SAFE_PROBLEM_NAME=$(echo "$PROBLEM_NAME" | sed 's/"/\\"/g')
           
           JSON_DATA=$(cat <<EOF
@@ -161,7 +162,7 @@ jobs:
           
           curl -X POST -H "Content-Type: application/json" -d "$JSON_DATA" "$WEBHOOK_URL"
           
-          # 변경사항이 있는지 확인
+          # 변경사항이 있는지 확인 및 커밋
           if [ -n "$(git status --porcelain)" ]; then
             git add "$WORKSPACE_DIR/" "weeklyCode/"
             git commit -m "📁 Auto organize: ${NAME} - ${MONTH}월 week${WEEK}"
