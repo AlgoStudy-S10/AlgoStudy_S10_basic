@@ -1,5 +1,4 @@
 package ksm.template;
-
 import java.util.*;
 import java.io.*;
 
