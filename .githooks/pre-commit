@@ -6,7 +6,7 @@ TEMPLATE_CODE='public class Main{
 	}
 }'
 
-MEMBERS=("김세민" "장지인" "이경호" "임성혁")
+MEMBERS=("김세민" "장지인" "이경호" "임성혁" "이정헌")
 
 for member in "${MEMBERS[@]}"; do
     TEMPLATE_DIR="workspace/$member/thisWeek/template"
