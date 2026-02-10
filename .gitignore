@@ -31,3 +31,5 @@ out/
 .idea/usage.statistics.xml
 .idea/shelf/
 workspace_backup/
+
+*.DS_Store
