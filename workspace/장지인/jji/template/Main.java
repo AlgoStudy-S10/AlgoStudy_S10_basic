@@ -1,7 +1,86 @@
 package jji.template;
 
+import java.io.*;
+import java.util.*;
+
 public class Main {
-    public static void main(String[] args){
-   
-    }
+	static int[][] map; 
+	static List<Pos> blank; // 빈칸이 몇 개일지 몰라서 연결리스트로 
+	
+	// 좌표 저장을 위한 클래
+	static class Pos {
+		int x, y;
+
+		Pos(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+	}
+
+	public static void main(String[] args) throws Exception {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		StringTokenizer st;
+		
+		// 전역 변수 초기화
+		map = new int[9][9];
+		blank = new ArrayList<>();
+		// 맵 입력 받으면서 빈칸도 저장
+		for (int i = 0; i < 9; i++) {
+			st = new StringTokenizer(br.readLine());
+			for (int j = 0; j < 9; j++) {
+				map[i][j] = Integer.parseInt(st.nextToken());
+				if (map[i][j] == 0)
+					blank.add(new Pos(i, j));
+			}
+		}
+
+		if (func(0)) {
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < 9; i++) {
+				for (int j = 0; j < 9; j++) {
+					sb.append(map[i][j]).append(" ");
+				}
+				sb.setLength(sb.length()-1);
+				sb.append("\n");
+			}
+			System.out.println(sb);
+		}
+
+	}
+	
+	// 백트래킹 완료시 true
+	public static boolean func(int cnt) {
+		// 빈칸 개수만큼 들어왔으면 다 본것임.
+		if (cnt == blank.size())
+			return true;
+		
+		// 이번에 채울 빈칸 인덱스로 가져오기
+		Pos cur = blank.get(cnt);
+		for (int i = 1; i < 10; i++) {
+			if (isValid(i, cur.x, cur.y)) { // 유효성검사
+				map[cur.x][cur.y] = i; // i로 채우기
+				if (func(cnt + 1)) // 만약 완료했으면 바로 완료반환
+					return true;
+				map[cur.x][cur.y] = 0; // 되돌리기
+			}
+		}
+		return false;
+	}
+	
+	// 유효성 검사 코드
+	public static boolean isValid(int value, int x, int y) {
+		for (int i = 0; i < 9; i++) {
+			// 행 / 열 확인
+			if (map[x][i] == value || map[i][y] == value)
+				return false;
+			
+			//  행은 몫으로 i가 증가함에따라 0,0,0,1,1,1,2,2,2
+			//  열은 나머지로 i가 증가함에따라 0,1,2,0,1,2,0,1,2
+			//  (x/3)*3, (y/3)*3 을 하면 무조건 박스의 왼쪽위 시작점
+			if (map[(x / 3) * 3 + (i / 3)][(y / 3) * 3 + (i % 3)] == value)
+				return false;
+		}
+		return true;
+	}
+
 }
