@@ -5,3 +5,100 @@ public class Main {
    
     }
 }
+package baekjoon.newbie.week02.boj15686;
+
+import java.io.*;
+import java.util.*;
+
+public class Main {
+    // static field
+    static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    static StringTokenizer st;
+
+    static int answer, N, M;
+    static List<int[]> chicken, house;
+    static boolean[] isSelected;
+    static int[] dist;
+
+    // main
+    public static void main(String[] args) throws IOException {
+        // init
+        answer = Integer.MAX_VALUE;
+        st = new StringTokenizer(br.readLine());
+        N = Integer.parseInt(st.nextToken());
+        M = Integer.parseInt(st.nextToken());
+        chicken = new ArrayList<>();
+        house = new ArrayList<>();
+
+        // input
+        for(int r=0; r<N; r++) {
+            st = new StringTokenizer(br.readLine());
+            for(int c=0; c<N; c++) {
+                int tmp = Integer.parseInt(st.nextToken());
+                if(tmp == 1) {
+                    // house
+                    house.add(new int[]{r, c});
+                } else if(tmp == 2) {
+                    // chicken
+                    chicken.add(new int[]{r, c});
+                }
+            }
+        }
+        isSelected = new boolean[chicken.size()];
+        dist = new int[house.size()];
+        resetDist();
+
+        // solve
+        dfs(0, 0);
+
+        // answer
+        System.out.println(answer);
+        br.close();
+    }
+
+    // combination
+    private static void dfs(int cnt, int start) {
+        // base
+        if(cnt == M) {
+            getDist();
+            resetDist();    // restore
+            return;
+        }
+
+        // recursion : combination
+        for(int i=start; i<chicken.size(); i++) {
+            isSelected[i] = true;
+            dfs(cnt + 1, i + 1);
+            isSelected[i] = false;
+        }
+    }
+
+    // get dist
+    private static void getDist() {
+        // calc dist
+        for(int i=0; i<chicken.size(); i++) {
+            if(isSelected[i]) {
+                int r1 = chicken.get(i)[0];
+                int c1 = chicken.get(i)[1];
+                for(int j=0; j<house.size(); j++) {
+                    int r2 = house.get(j)[0];
+                    int c2 = house.get(j)[1];
+                    dist[j] = Math.min(dist[j], Math.abs(r1 - r2) + Math.abs(c1 - c2));
+                }
+            }
+        }
+
+        // renew answer
+        int sum = 0;
+        for(int i=0; i<house.size(); i++) {
+            sum += dist[i];
+        }
+        answer = Math.min(answer, sum);
+    }
+
+    // reset dist
+    private static void resetDist() {
+        Arrays.fill(dist, Integer.MAX_VALUE);
+    }
+}
+/* 14:55 ~ 15:45 */
