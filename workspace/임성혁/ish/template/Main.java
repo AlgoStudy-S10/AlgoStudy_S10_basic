@@ -1,7 +1,115 @@
 package ish.template;
 
+import java.io.*;
+import java.util.*;
+
 public class Main {
-    public static void main(String[] args){
-   
+    static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    static StringTokenizer st;
+    static int N, M, min, C;
+    static ArrayList<Home> homes = new ArrayList<Home>();
+    static ArrayList<Chicken> chickens = new ArrayList<Chicken>();
+    static boolean[] selected;
+
+    static class Home {
+        int x;
+        int y;
+        ArrayList<Chickdist> cd;
+        
+        public Home(int x, int y){
+            this.x = x;
+            this.y = y;
+            this.cd = new ArrayList<Chickdist>();
+        }
+    }
+
+    static class Chickdist {
+        int dist;
+        int chickNo;
+        
+        public Chickdist(int dist, int chickNo){
+            this.dist = dist;
+            this.chickNo = chickNo;
+        }
+    }
+
+    static class Chicken {
+        int x;
+        int y;
+        int chickNo;
+        public Chicken(int x, int y, int chickNo) {
+            this.x = x;
+            this.y = y;
+            this.chickNo = chickNo;
+        }
+    }
+
+    public static void main(String[] args) throws IOException{
+        st = new StringTokenizer(br.readLine());
+        N = Integer.parseInt(st.nextToken());
+        M = Integer.parseInt(st.nextToken());
+
+        for(int i=0;i<N;i++){ // 입력과 동시에 계산
+            st = new StringTokenizer(br.readLine());
+            for(int j=0;j<N;j++){
+                int temp = Integer.parseInt(st.nextToken());
+                switch (temp) {
+                    case 0:
+                        break;
+                    case 1:
+                        homes.add(new Home(i, j));
+                        break;
+                    case 2:
+                        chickens.add(new Chicken(i, j, chickens.size()));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        C = chickens.size();
+        selected = new boolean[C]; //dfs 순회를 위해 치킨집 개수 만큼 방문 boolean 배열 생성
+        min = Integer.MAX_VALUE; // min 초기화
+
+        for(Home h : homes){ // 각 집 - 치킨집에 대해서 거리를 모두 계산 후 저장
+            for(Chicken c : chickens){
+                int dist = Math.abs(h.x-c.x)+Math.abs(h.y-c.y);
+                h.cd.add(new Chickdist(dist, c.chickNo));
+            }
+            // dist를 기준으로 오름차순 정렬
+            h.cd.sort(Comparator.comparingInt(cd -> cd.dist));
+        }
+
+        dfs(0,0);
+
+
+        System.out.println(min);
+    }
+
+    public static void dfs(int start, int cnt){
+        if(cnt==M){
+            calDist();
+            return;
+        }
+
+        for(int i=start;i<C;i++){
+            selected[i]=true;
+            dfs(i+1, cnt+1);
+            selected[i]=false;
+        }
+    }
+
+    public static void calDist(){
+        int sum = 0;
+        for(Home h : homes){ // 각 집에 대해서
+            for(Chickdist cd : h.cd){ 
+                if(selected[cd.chickNo]){ // 조합상 도달할 수 있는 치킨 집 중 가장 작은 거리를 더함
+                    sum+=cd.dist;
+                    break;
+                }
+            }
+        }
+        if(sum<min) min = sum; // 최소값 보다 작다면 업데이트
     }
 }
