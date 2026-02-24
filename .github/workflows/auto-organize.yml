@@ -161,6 +161,8 @@ jobs:
           echo "Payload: $JSON_DATA"
           
           curl -X POST -H "Content-Type: application/json" -d "$JSON_DATA" "$WEBHOOK_URL"
+          # 추가 (바로 아래에)
+          curl -s -X POST -H "Content-Type: application/json" -d "$JSON_DATA" "https://auto.leo0409.work/webhook/algostudy-analysis"
           
           # 변경사항이 있는지 확인 및 커밋
           if [ -n "$(git status --porcelain)" ]; then
