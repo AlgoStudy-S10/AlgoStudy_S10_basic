@@ -1,7 +1,119 @@
 package ljh.template;
 
+import java.io.*;
+import java.util.*;
+
 public class Main {
-    public static void main(String[] args){
-   
+    // static field
+    static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    static StringTokenizer st;
+
+    static int cnt1, cnt2, N;
+    static char[][] colors;
+    static boolean[][] visited1, visited2;
+
+    static int[] dr = { -1, 1, 0, 0 }; // 상하좌우(0123)
+    static int[] dc = { 0, 0, -1, 1 };
+
+    // main
+    public static void main(String[] args) throws IOException {
+        // init
+        String answer = "";
+        cnt1 = 0;
+        cnt2 = 0;
+        N = Integer.parseInt(br.readLine());
+        colors = new char[N][N];
+        visited1 = new boolean[N][N];
+        visited2 = new boolean[N][N];
+
+        // input
+        for (int r = 0; r < N; r++) {
+            String line = br.readLine();
+            for (int c = 0; c < N; c++) {
+                colors[r][c] = line.charAt(c);
+            }
+        }
+
+        // solve
+        for (int r = 0; r < N; r++) {
+            for (int c = 0; c < N; c++) {
+                if (!visited1[r][c])
+                    bfs1(r, c);
+                if (!visited2[r][c])
+                    bfs2(r, c);
+            }
+        }
+        answer = cnt1 + " " + cnt2;
+
+        // output
+        System.out.println(answer);
+        br.close();
+    }
+
+    // bfs1 : RGB 구분
+    private static void bfs1(int startR, int startC) {
+        // init
+        Queue<int[]> q = new ArrayDeque<>();
+
+        // first pos
+        q.offer(new int[] { startR, startC });
+        visited1[startR][startC] = true;
+        char color = colors[startR][startC];
+        cnt1++;
+
+        // loop
+        while (!q.isEmpty()) {
+            int[] curr = q.poll();
+            int r = curr[0];
+            int c = curr[1];
+
+            // delta 4
+            for (int d = 0; d < 4; d++) {
+                int nr = r + dr[d];
+                int nc = c + dc[d];
+                if (nr < 0 || nr >= N || nc < 0 || nc >= N)
+                    continue;
+                if (visited1[nr][nc])
+                    continue;
+                if (colors[nr][nc] != color)
+                    continue;
+                q.offer(new int[] { nr, nc });
+                visited1[nr][nc] = true;
+            }
+        }
+    }
+
+    // bfs2 : (RG)B 구분
+    private static void bfs2(int startR, int startC) {
+        // init
+        Queue<int[]> q = new ArrayDeque<>();
+
+        // first pos
+        q.offer(new int[] { startR, startC });
+        visited2[startR][startC] = true;
+        boolean isFirstBlack = colors[startR][startC] == 'B';
+        cnt2++;
+
+        // loop
+        while (!q.isEmpty()) {
+            int[] curr = q.poll();
+            int r = curr[0];
+            int c = curr[1];
+
+            // delta 4
+            for (int d = 0; d < 4; d++) {
+                int nr = r + dr[d];
+                int nc = c + dc[d];
+                if (nr < 0 || nr >= N || nc < 0 || nc >= N)
+                    continue;
+                if (visited2[nr][nc])
+                    continue;
+                if ((isFirstBlack && colors[nr][nc] != 'B') ||
+                        (!isFirstBlack && colors[nr][nc] == 'B'))
+                    continue;
+                q.offer(new int[] { nr, nc });
+                visited2[nr][nc] = true;
+            }
+        }
     }
 }
