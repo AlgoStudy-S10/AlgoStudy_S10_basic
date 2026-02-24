@@ -1,66 +1,7 @@
 package lkh.template;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.StringTokenizer;
-
 public class Main {
-	// 알파벳 대문자들만 존재하므로, 적당히 char array로 구현하기로 결정
-	static char[][] map;
-	static final int[] dr = {-1,1,0,0};
-	static final int[] dc = {0,0,-1,1};
-	static int R, C, maxCount;
-	static boolean[] list;
-
-	public static void main(String[] args) throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		StringBuilder sb = new StringBuilder();
-		StringTokenizer st = new StringTokenizer(br.readLine());
-		R = Integer.parseInt(st.nextToken());
-		C = Integer.parseInt(st.nextToken());
-		map = new char[R][C];
-		// 처음에는 ArrayList<Character>로 스택?을 구현하여 지나간 흔적을 파악하였으나
-		// 당연히 너무 느렸고 (2초 제한인데 4초나 써먹고 통과...를 어떻게 한건지는 모르겠음)
-		// 잘 생각해보니 알파벳 대문자만 존재하므로, 26개로 array 길이를 제한할 수가 있다는 것을 파악함
-		list = new boolean[26];
-		maxCount = 0;
-		
-		for (int r = 0; r < R; r++) {
-			String str = br.readLine();
-			for (int c = 0; c < C; c++)
-				map[r][c] = str.charAt(c);
-		}
-		
-		list[map[0][0] - 'A'] = true;
-		dfs(0,0,1);
-		
-		sb.append(maxCount + "\n");
-		System.out.println(sb);
-	}
-	
-	// 처음에는 BFS로 갈 생각이었으나 (최대 거리를 구해야 하기 때문)
-	// 지나쳐온 길을 저장해야 한다는 점에서 DFS로 선회
-	// backtracking이 필수라고 판단
-	static void dfs(int r, int c, int count) {
-		maxCount = Math.max(maxCount, count);
-		
-		// 동 서 남 북 인접한 곳 체크
-		for (int i = 0; i < 4; i++) {
-			if (!isIn(r + dr[i], c + dc[i]))
-				continue;
-			
-			// 중복된 알파벳인 경우 (or visited인 경우) -> boolean[][] visited가 굳이 필요하지 않음
-			if (list[map[r + dr[i]][c + dc[i]] - 'A'])
-				continue;
-			
-			list[map[r + dr[i]][c + dc[i]] - 'A'] = true;
-			dfs(r + dr[i], c + dc[i], count + 1);
-			list[map[r + dr[i]][c + dc[i]] - 'A'] = false;
-		}
-	}
-	
-	static boolean isIn(int r, int c) {
-		return 0 <= r && r < R && 0 <= c && c < C;
-	}
+    public static void main(String[] args){
+   
+    }
 }
