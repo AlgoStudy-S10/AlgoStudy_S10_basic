@@ -8,9 +8,9 @@ public class Main {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     static StringTokenizer st;
 
-    static int cnt1, cnt2, N;
-    static char[][] colors;
-    static boolean[][] visited1, visited2;
+    static int maxCnt, R, C;
+    static char[][] board;
+    static Map<Character, Boolean> isSelected;
 
     static int[] dr = { -1, 1, 0, 0 }; // 상하좌우(0123)
     static int[] dc = { 0, 0, -1, 1 };
@@ -18,102 +18,55 @@ public class Main {
     // main
     public static void main(String[] args) throws IOException {
         // init
-        String answer = "";
-        cnt1 = 0;
-        cnt2 = 0;
-        N = Integer.parseInt(br.readLine());
-        colors = new char[N][N];
-        visited1 = new boolean[N][N];
-        visited2 = new boolean[N][N];
+        maxCnt = 0;
+        st = new StringTokenizer(br.readLine());
+        R = Integer.parseInt(st.nextToken());
+        C = Integer.parseInt(st.nextToken());
+        board = new char[R][C];
+        isSelected = new HashMap<>();
+        for (char ch = 'A'; ch <= 'Z'; ch++) {
+            isSelected.put(ch, false);
+        }
 
         // input
-        for (int r = 0; r < N; r++) {
+        for (int r = 0; r < R; r++) {
             String line = br.readLine();
-            for (int c = 0; c < N; c++) {
-                colors[r][c] = line.charAt(c);
+            for (int c = 0; c < C; c++) {
+                board[r][c] = line.charAt(c);
             }
         }
 
         // solve
-        for (int r = 0; r < N; r++) {
-            for (int c = 0; c < N; c++) {
-                if (!visited1[r][c])
-                    bfs1(r, c);
-                if (!visited2[r][c])
-                    bfs2(r, c);
-            }
-        }
-        answer = cnt1 + " " + cnt2;
+        isSelected.put(board[0][0], true);
+        dfs(0, 0, 1);
 
         // output
-        System.out.println(answer);
+        System.out.println(maxCnt);
         br.close();
     }
 
-    // bfs1 : RGB 구분
-    private static void bfs1(int startR, int startC) {
-        // init
-        Queue<int[]> q = new ArrayDeque<>();
+    // DFS
+    private static void dfs(int r, int c, int cnt) {
+        boolean isLast = true;
 
-        // first pos
-        q.offer(new int[] { startR, startC });
-        visited1[startR][startC] = true;
-        char color = colors[startR][startC];
-        cnt1++;
-
-        // loop
-        while (!q.isEmpty()) {
-            int[] curr = q.poll();
-            int r = curr[0];
-            int c = curr[1];
-
-            // delta 4
-            for (int d = 0; d < 4; d++) {
-                int nr = r + dr[d];
-                int nc = c + dc[d];
-                if (nr < 0 || nr >= N || nc < 0 || nc >= N)
-                    continue;
-                if (visited1[nr][nc])
-                    continue;
-                if (colors[nr][nc] != color)
-                    continue;
-                q.offer(new int[] { nr, nc });
-                visited1[nr][nc] = true;
-            }
+        // recursion
+        for (int d = 0; d < 4; d++) {
+            int nr = r + dr[d];
+            int nc = c + dc[d];
+            if (nr < 0 || nr >= R || nc < 0 || nc >= C)
+                continue;
+            if (isSelected.get(board[nr][nc]))
+                continue;
+            isSelected.put(board[nr][nc], true);
+            dfs(nr, nc, cnt + 1);
+            isSelected.put(board[nr][nc], false);
+            isLast = false;
         }
-    }
 
-    // bfs2 : (RG)B 구분
-    private static void bfs2(int startR, int startC) {
-        // init
-        Queue<int[]> q = new ArrayDeque<>();
-
-        // first pos
-        q.offer(new int[] { startR, startC });
-        visited2[startR][startC] = true;
-        boolean isFirstBlack = colors[startR][startC] == 'B';
-        cnt2++;
-
-        // loop
-        while (!q.isEmpty()) {
-            int[] curr = q.poll();
-            int r = curr[0];
-            int c = curr[1];
-
-            // delta 4
-            for (int d = 0; d < 4; d++) {
-                int nr = r + dr[d];
-                int nc = c + dc[d];
-                if (nr < 0 || nr >= N || nc < 0 || nc >= N)
-                    continue;
-                if (visited2[nr][nc])
-                    continue;
-                if ((isFirstBlack && colors[nr][nc] != 'B') ||
-                        (!isFirstBlack && colors[nr][nc] == 'B'))
-                    continue;
-                q.offer(new int[] { nr, nc });
-                visited2[nr][nc] = true;
-            }
+        // base
+        if (isLast) {
+            maxCnt = Math.max(maxCnt, cnt);
+            return;
         }
     }
 }
