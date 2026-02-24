@@ -1,7 +1,98 @@
 package ksm.template;
 
+import java.util.*;
+import java.io.*;
+
 public class Main {
-    public static void main(String[] args){
-   
-    }
-}
+
+	// 정상 시야를 가진 사람이 보는 구역을 저장할 2차원 배열
+	static int[][] matrixNormal;
+	// 적록색약인 사람이 보는 구역을 저장할 2차원 배열 (R과 G를 같은 값으로 취급)
+	static int[][] matrixColor;
+	static int N; // 그리드의 크기 (N x N)
+	static int countNormal; // 정상 시야 기준으로 찾은 연결 구역의 수
+	static int countColor;  // 적록색약 기준으로 찾은 연결 구역의 수
+	
+	// 상, 하, 우, 좌 4방향 탐색을 위한 방향 배열 (y좌표, x좌표 이동량)
+	static int[] dy = {1, -1, 0, 0};
+	static int[] dx = {0, 0, 1, -1};
+	
+	public static void main(String[] args) throws IOException{
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		
+		// 그리드의 크기 N을 입력받고 초기화
+		N = Integer.parseInt(br.readLine());
+		matrixNormal = new int[N][N];
+		matrixColor = new int[N][N];
+		countNormal = 0;
+		countColor = 0;
+		
+		// N 줄에 걸쳐 입력되는 색상 정보를 각각의 배열에 알맞게 정수형으로 저장
+		for(int i=0; i<N; i++) {
+			String line = br.readLine();
+			for(int j=0; j<N; j++) {
+				char tmp = line.charAt(j);
+				switch (tmp){
+					case 'R':
+						matrixNormal[i][j] = 1; // 정상 시야: 빨강은 1
+						matrixColor[i][j] = 1;  // 적록색약: 빨강은 1
+						break;
+					case 'G':
+						matrixNormal[i][j] = 2; // 정상 시야: 초록은 2
+						matrixColor[i][j] = 1;  // 적록색약: 초록도 빨강과 같은 1로 취급하여 하나로 묶음
+						break;
+					case 'B':
+						matrixNormal[i][j] = 3; // 정상 시야: 파랑은 3
+						matrixColor[i][j] = 3;  // 적록색약: 파랑은 3
+						break;
+				}
+			}
+		}
+		
+		// 정상 시야 배열을 기준으로 구역 개수 탐색
+		countNormal = check(0, matrixNormal);
+		// 적록색약 배열을 기준으로 구역 개수 탐색
+		countColor = check(0, matrixColor);
+		
+		// 정상 시야 구역 수와 적록색약 구역 수를 공백으로 구분하여 출력
+		System.out.println(countNormal + " " + countColor);
+	}
+	
+ // BFS(너비 우선 탐색)를 이용해 상하좌우로 연결된 같은 색상의 구역 개수를 세는 메서드
+ static int check(int count, int[][] matrix) {
+	 ArrayDeque<int[]> q = new ArrayDeque<>();
+	 boolean[][] visited = new boolean[N][N]; // 해당 좌표의 방문 여부를 기록할 배열
+	 
+	 // 2차원 그리드 전체를 순회하며 탐색을 시작할 지점을 찾음
+	 for(int i=0; i<N; i++) {
+			for(int j=0; j<N; j++) {
+				// 아직 방문하지 않은 지점이라면 새로운 구역의 시작점임
+				if(!visited[i][j]) {
+					count += 1; // 새로운 구역을 발견했으므로 구역의 총 개수를 1 증가
+					visited[i][j] = true; // 시작점 방문 처리
+					q.offerLast(new int[] {i, j}); // 큐에 시작점의 좌표 삽입
+					
+					// 큐가 빌 때까지 반복하며, 시작점과 연결된 모든 같은 색상의 칸을 방문 처리
+					while(!q.isEmpty()) {
+						int[] now = q.pollFirst(); // 큐에서 현재 위치를 꺼냄
+						
+						// 현재 위치에서 상, 하, 좌, 우 4방향을 모두 탐색
+						for(int d=0; d<4; d++) {
+							int ny = now[0]+dy[d]; // 다음 탐색할 y 좌표
+							int nx = now[1]+dx[d]; // 다음 탐색할 x 좌표
+							
+							// 1) 다음 좌표가 그리드 범위(N x N)를 벗어나지 않고,
+							// 2) 아직 방문하지 않은 칸이며,
+							// 3) 현재 위치의 색상 숫자와 다음 위치의 색상 숫자가 동일하다면
+							if((ny>=0 && ny<N) && (nx>=0 && nx<N) && !visited[ny][nx] && (matrix[ny][nx] == matrix[now[0]][now[1]])) {
+								visited[ny][nx] = true; // 해당 좌표를 방문 처리
+								q.offerLast(new int[] {ny, nx}); // 큐에 넣어 연결된 다음 지점을 계속해서 탐색하도록 함
+							}
+						}
+					}
+				}
+			}
+		}
+	 return count; // 그리드 전체 탐색이 끝난 후, 최종적으로 계산된 구역의 개수를 반환
+ 	}
+ }
