@@ -3,100 +3,142 @@ package lkh.template;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.StringTokenizer;
 
 public class Main {
-	static int[] dr = {1,-1,0,0};
-	static int[] dc = {0,0,-1,1};
-	// R, G, B 값만 들어오기에, char array로 설정함
-	// 3가지 경우의 수밖에 없으므로 자료형 크기를 극한으로 줄이는 방법도 있겠지만, 굳이?
-	static char[][] paint;
+	static int N, M;
+	static int[][] map, mapCopy;
+	// 상, 하, 좌, 우   +   좌상, 좌하, 우상, 우하
+	// 바이러스 : 상 하 좌 우 로만 퍼진다
+	// 벽 : 상 하 좌 우 뿐만 아니라, 좌상 좌하 우상 우하 로도 공간을 분할할 수 있다
+	// 결국 brute-force 적용으로 index = 4~7 은 필요가 없어짐
+	static final int[] dr = {-1,1,0,0 , -1,1,-1,1};
+	static final int[] dc = {0,0,-1,1 , -1,-1,1,1};
+	static int maxCount;
 	static boolean[][] visited;
-	static int N;
 	
 	public static void main(String[] args) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		StringBuilder sb = new StringBuilder();
-		N = Integer.parseInt(br.readLine());
-		paint = new char[N][N];
+		StringTokenizer st = new StringTokenizer(br.readLine());
+		N = Integer.parseInt(st.nextToken());
+		M = Integer.parseInt(st.nextToken());
+		map = new int[N][M];
 		
-		// StringTokenizer 필요 없이 charAt으로 값 받기
-		for (int r = 0; r < N; r++) {
-			String str = br.readLine();
-			for (int c = 0; c < N; c++) {
-				paint[r][c] = str.charAt(c);
+		for (int n = 0; n < N; n++) {
+			st = new StringTokenizer(br.readLine());
+			for (int m = 0; m < M; m++) {
+				map[n][m] = Integer.parseInt(st.nextToken());
 			}
 		}
+
+		// 제일 핵심
+		// "어떻게 벽을 3개 세울 것인가?"
+		// Brute-Force : 미친짓. 너무 비효율적이다.
+		// ㄴ 그런데 가로 세로 길이가 각각 최대 8이다. 할만한데?
+		// alt) 벽이 있는 곳 근처에서만 짓기 : 좋은데, 구체적으로 어떻게 구현하지?
+		// 우선 무식하게 풀어보자.
 		
-		// 적록색약이 아닌 사람의 스캔
-		visited = new boolean[N][N];
-		int count1 = 0;
-		for (int r = 0; r < N; r++) {
-			for (int c = 0; c < N; c++) {
-				if (visited[r][c])
-					continue;
-				
-				// 방문 안 한 곳은 새로운 구역
-				// 해당 구역에 해당하는 곳을 모두 찾아 visited = true 처리하기
-				// 적록색약이 아니므로 threeEyeSearch의 rgConfusion = false 처리 후 진행
-				visited[r][c] = true;
-				threeEyeSearch(r, c, paint[r][c], false);
-				count1++;
-			}
-		}
+		buildWalls(0,0,0);
+
 		
-		
-		// 적록색약인 사람의 스캔
-		visited = new boolean[N][N];
-		int count2 = 0;
-		for (int r = 0; r < N; r++) {
-			for (int c = 0; c < N; c++) {
-				if (visited[r][c])
-					continue;
-				
-				visited[r][c] = true;
-				threeEyeSearch(r, c, paint[r][c], true);
-				count2++;
-			}
-		}
-		sb.append(count1 + " " + count2 + "\n");
-		
+		sb.append(maxCount + "\n");
 		System.out.println(sb);
 	}
 	
-	// 1) 적록색약인 경우와 2) 적록색약이 아닌 경우 모두를 처리하는 재귀적 함수 구현
-	// 예상보다 깔끔하지는 않지만, 생각나서 진행함
-	static void threeEyeSearch(int r, int c, char type, boolean rgConfusion) {
-		// 1) 적록색맹의 경우 실행되는 코드
-		if (rgConfusion) {
-			for (int i = 0; i < 4; i++) {
-				if (isIn(r + dr[i], c + dc[i]) && !visited[r + dr[i]][c + dc[i]] &&
-						// 1-1) 타겟 색과 동일한 경우
-							(paint[r + dr[i]][c + dc[i]] == type
-						// 1-2) 타겟 색이 Red이고, 현재 선택한 공간의 색이 Green인 경우
-						|| (type == 'R' && paint[r + dr[i]][c + dc[i]] == 'G')
-						// 1-3) 타겟 색이 Green이고, 현재 선택한 공간의 색이 Red인 경우
-						|| (type == 'G' && paint[r + dr[i]][c + dc[i]] == 'R'))) {
-					visited[r + dr[i]][c + dc[i]] = true;
-					threeEyeSearch(r + dr[i], c + dc[i], type, rgConfusion);
-					continue;
-				}
+	static void buildWalls(int row, int col, int built) {
+		// 벽을 3개 다 세운 경우
+		// 본격적으로 해당 case에 대한 바이러스 및 공간 체크
+		if (built == 3) {
+			int count = 0;
+			// 바이러스 증식 시작
+			// 한 번 바이러스 증식 시작 시, 원본이 오염?되므로 사본으로 진행
+			// 비효율적이라고 생각
+			mapCopy = new int[N][M];
+			for (int r = 0; r < N; r++) {
+				mapCopy[r] = map[r].clone();
 			}
 			
-			// 모두 찾았으면 종료
+			for (int r = 0; r < N; r++) {
+				for (int c = 0; c < M; c++) {
+					if (mapCopy[r][c] == 2)
+						findSpace(r, c, true);
+				}
+			}
+			// 바이러스 증식 끝
+			// 공간 체크 시작
+			// visited 초기화 후 공간 탐색 진행
+			visited = new boolean[N][M];
+			for (int r = 0; r < N; r++) {
+				for (int c = 0; c < M; c++) {
+					if (mapCopy[r][c] == 0) {
+						visited[r][c] = true;
+						count++;
+						findSpace(r, c, false);
+					}
+				}
+			}
+			// 공간 체크 끝
+			maxCount = Math.max(maxCount, count);
+			
 			return;
 		}
 		
-		// 2) 적록색맹이 아닌 경우 실행되는 코드
+		// 아직 벽을 다 못 세운 경우
+		// 무작정 벽 세우기 시작 (brute-force)
+		for (int r = row; r < N; r++) {
+			// 현재 위치에서 순서대로 진행
+			// 첫 row에 대해서는 예외적으로 for문 작동
+			if (r == row) {
+				if (row == 0 && col == 0)
+					col = -1;
+				for (int c = col + 1; c < M; c++) {
+					if (map[r][c] == 0) {
+						map[r][c] = 1;
+						buildWalls(r, c, built + 1);
+						map[r][c] = 0;
+					}
+				}
+				continue;
+			}
+			
+			// 나머지 row에 대해서는 평소대로 for문 작동
+			for (int c = 0; c < M; c++) {
+				if (map[r][c] == 0) {
+					map[r][c] = 1;
+					buildWalls(r, c, built + 1);
+					map[r][c] = 0;
+				}
+			}
+		}
+		
+	}
+	
+	// virus나 공간 체크하는데 사용하는 재귀 함수
+	// isVirus = true : 바이러스 증식하는 함수
+	// isVirus = false : 해당 공간의 전체 위치를 파악하는 함수
+	static void findSpace(int r, int c, boolean isVirus) {
 		for (int i = 0; i < 4; i++) {
-			if (isIn(r + dr[i], c + dc[i]) && !visited[r + dr[i]][c + dc[i]] &&
-					paint[r + dr[i]][c + dc[i]] == type) {
+			if (!isIn(r + dr[i], c + dc[i]))
+				continue;
+			
+			// 바이러스 증식하는 상황 + 선택한 공간이 퍼질 수 있는 공간일 때
+			if (isVirus && mapCopy[r + dr[i]][c + dc[i]] == 0) {
+				mapCopy[r + dr[i]][c + dc[i]] = 2;
+				findSpace(r + dr[i], c + dc[i], isVirus);
+			}
+			
+			// 공간 체크하는 상황 + 선택한 공간이 연장 가능할 때
+			// visited = true 후 재귀적으로 진행
+			if (!isVirus && !visited[r + dr[i]][c + dc[i]] && mapCopy[r + dr[i]][c + dc[i]] == 0) {
 				visited[r + dr[i]][c + dc[i]] = true;
-				threeEyeSearch(r + dr[i], c + dc[i], type, rgConfusion);
+				findSpace(r + dr[i], c + dc[i], isVirus);
 			}
 		}
 	}
 	
-	static boolean isIn(int r, int c) {
-		return 0 <= r && r < N && 0 <= c && c < N;
+	
+	public static boolean isIn(int r, int c) {
+		return 0 <= r && r < N && 0 <= c && c < M;
 	}
-} 
+}
