@@ -8,65 +8,119 @@ public class Main {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     static StringTokenizer st;
 
-    static int maxCnt, R, C;
-    static char[][] board;
-    static Map<Character, Boolean> isSelected;
+    static int maxSafeArea, N, M;
+    static int[][] map;
+    static boolean[][] visited;
+    static List<int[]> virus, blank;
 
-    static int[] dr = { -1, 1, 0, 0 }; // 상하좌우(0123)
+    static int[] dr = { -1, 1, 0, 0 }; // 상하좌우
     static int[] dc = { 0, 0, -1, 1 };
 
     // main
     public static void main(String[] args) throws IOException {
         // init
-        maxCnt = 0;
+        maxSafeArea = 0;
         st = new StringTokenizer(br.readLine());
-        R = Integer.parseInt(st.nextToken());
-        C = Integer.parseInt(st.nextToken());
-        board = new char[R][C];
-        isSelected = new HashMap<>();
-        for (char ch = 'A'; ch <= 'Z'; ch++) {
-            isSelected.put(ch, false);
-        }
+        N = Integer.parseInt(st.nextToken());
+        M = Integer.parseInt(st.nextToken());
+        map = new int[N][M];
+        virus = new ArrayList<>();
+        blank = new ArrayList<>();
 
         // input
-        for (int r = 0; r < R; r++) {
-            String line = br.readLine();
-            for (int c = 0; c < C; c++) {
-                board[r][c] = line.charAt(c);
+        for (int r = 0; r < N; r++) {
+            st = new StringTokenizer(br.readLine());
+            for (int c = 0; c < M; c++) {
+                map[r][c] = Integer.parseInt(st.nextToken());
+                if (map[r][c] == 2) {
+                    virus.add(new int[] { r, c });
+                } else if (map[r][c] == 0) {
+                    blank.add(new int[] { r, c });
+                }
             }
         }
 
         // solve
-        isSelected.put(board[0][0], true);
-        dfs(0, 0, 1);
+        setWall(0, 0);
 
         // output
-        System.out.println(maxCnt);
+        System.out.println(maxSafeArea);
         br.close();
     }
 
-    // DFS
-    private static void dfs(int r, int c, int cnt) {
-        boolean isLast = true;
-
-        // recursion
-        for (int d = 0; d < 4; d++) {
-            int nr = r + dr[d];
-            int nc = c + dc[d];
-            if (nr < 0 || nr >= R || nc < 0 || nc >= C)
-                continue;
-            if (isSelected.get(board[nr][nc]))
-                continue;
-            isSelected.put(board[nr][nc], true);
-            dfs(nr, nc, cnt + 1);
-            isSelected.put(board[nr][nc], false);
-            isLast = false;
-        }
-
+    // set 3 wall : combination NM C 3
+    private static void setWall(int start, int cnt) {
         // base
-        if (isLast) {
-            maxCnt = Math.max(maxCnt, cnt);
+        if (cnt == 3) {
+            int[][] tempMap = copyMap();
+            visited = new boolean[N][M];
+            spreadVirus(tempMap);
+            getSafeArea(tempMap);
             return;
         }
+
+        // recursion
+        for (int i = start; i < blank.size(); i++) {
+            int r = blank.get(i)[0];
+            int c = blank.get(i)[1];
+            if (map[r][c] == 0) {
+                map[r][c] = 1; // set wall
+                setWall(i + 1, cnt + 1);
+                map[r][c] = 0; // restore
+            }
+        }
+    }
+
+    // copy map
+    private static int[][] copyMap() {
+        int[][] copy = new int[N][M];
+        for (int r = 0; r < N; r++) {
+            copy[r] = map[r].clone();
+        }
+        return copy;
+    }
+
+    // spread virus : BFS
+    private static void spreadVirus(int[][] targetMap) {
+        Queue<int[]> q = new ArrayDeque<>();
+        for (int[] pos : virus) {
+            int r = pos[0];
+            int c = pos[1];
+            q.add(new int[] { r, c });
+            visited[r][c] = true;
+        }
+
+        while (!q.isEmpty()) {
+            int[] cur = q.poll();
+            int r = cur[0];
+            int c = cur[1];
+
+            for (int d = 0; d < 4; d++) {
+                int nr = r + dr[d];
+                int nc = c + dc[d];
+                if (nr < 0 || nr >= N || nc < 0 || nc >= M)
+                    continue;
+                if (!visited[nr][nc] && targetMap[nr][nc] == 0) {
+                    q.add(new int[] { nr, nc });
+                    visited[nr][nc] = true;
+                    targetMap[nr][nc] = 2; // set virus
+                }
+            }
+        }
+    }
+
+    // get safe area : BFS
+    private static void getSafeArea(int[][] targetMap) {
+        int safeArea = 0;
+
+        for (int[] pos : blank) {
+            int r = pos[0];
+            int c = pos[1];
+            if (targetMap[r][c] == 0) {
+                safeArea++;
+            }
+        }
+
+        maxSafeArea = Math.max(safeArea, maxSafeArea);
     }
 }
