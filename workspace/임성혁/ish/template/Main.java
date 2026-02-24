@@ -3,6 +3,9 @@ package ish.template;
 import java.io.*;
 import java.util.*;
 
+import java.io.*;
+import java.util.*
+;
 public class Main {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     static StringTokenizer st;
@@ -111,5 +114,112 @@ public class Main {
             }
         }
         if(sum<min) min = sum; // 최소값 보다 작다면 업데이트
+    static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    static StringTokenizer st;
+    static int[][] map;
+    static boolean[][] visited;
+    static int cnt, N;
+    static int[] dx = {1, -1, 0, 0};
+    static int[] dy = {0, 0, 1, -1};
+
+    public static void main(String[] args) throws IOException{
+        StringBuilder sb = new StringBuilder();
+
+        st = new StringTokenizer(br.readLine());
+        N = Integer.parseInt(st.nextToken());
+
+        map = new int[N][N];
+        visited = new boolean[N][N];
+        cnt = 0;
+
+        for(int i=0;i<N;i++){
+            st = new StringTokenizer(br.readLine());
+            String line = st.nextToken();
+            for(int j=0;j<N;j++){
+                char temp = line.charAt(j);
+                if(temp=='R'){
+                    map[i][j]=1;
+                }else if (temp=='G'){
+                    map[i][j]=2;
+                }else if (temp=='B'){
+                    map[i][j]=3;
+                }
+            }
+        }
+
+        for(int i=0;i<N;i++){ 
+            for(int j=0;j<N;j++){
+                if(visited[i][j]) continue;
+                bfs(i,j); // 색맹이 아닐 때 bfs flood fill
+                cnt++;
+            }
+        }
+
+        sb.append(cnt).append(" ");
+
+        cnt = 0;
+        for(int i=0;i<N;i++){
+            for(int j=0;j<N;j++){
+                visited[i][j] = false;
+            }
+        }
+        for(int i=0;i<N;i++){
+            for(int j=0;j<N;j++){
+                if(visited[i][j]) continue;
+                jbfs(i,j); // 색맹이 일 때 bfs flood fill
+                cnt++;
+            }
+        }
+
+        sb.append(cnt);
+
+        System.out.println(sb);
+    }
+
+    static void bfs(int x, int y){
+        Queue<int[]> q = new ArrayDeque<int[]>();
+
+        visited[x][y] = true;
+        q.add(new int[] {x,y});
+
+        while(!q.isEmpty()){
+            int[] temp;
+            temp = q.poll();
+            int nx,ny,color;
+            color = map[temp[0]][temp[1]];
+
+            for(int i=0;i<4;i++){
+                nx = temp[0] + dx[i];
+                ny = temp[1] + dy[i];
+                if(nx<0 || nx>=N || ny<0 || ny>=N) continue;
+                if(visited[nx][ny] || map[nx][ny]!=color) continue;
+                visited[nx][ny] = true;
+                q.add(new int[] {nx, ny});
+            }
+        }
+    }
+
+    static void jbfs(int x, int y){
+        Queue<int[]> q = new ArrayDeque<int[]>();
+
+        visited[x][y] = true;
+        q.add(new int[] {x,y});
+
+        while(!q.isEmpty()){
+            int[] temp;
+            temp = q.poll();
+            int nx,ny,color;
+            color = map[temp[0]][temp[1]];
+
+            for(int i=0;i<4;i++){
+                nx = temp[0] + dx[i];
+                ny = temp[1] + dy[i];
+                if(nx<0 || nx>=N || ny<0 || ny>=N) continue;
+                if(visited[nx][ny]) continue;
+                if((color<3 && map[nx][ny]==3) ||(color==3 && map[nx][ny]<3)) continue;
+                visited[nx][ny] = true;
+                q.add(new int[] {nx, ny});
+            }
+        }
     }
 }
