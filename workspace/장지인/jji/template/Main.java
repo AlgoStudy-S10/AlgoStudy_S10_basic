@@ -33,6 +33,7 @@ public class Main {
 		System.out.println(BEST);
 	}
 	static void dfs(int r, int c, int cnt) {
+		// 매번 초기화
 		BEST = Math.max(BEST, cnt);
 		
 		for (int i=0; i<4; i++) {
