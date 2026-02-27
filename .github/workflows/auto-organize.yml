@@ -95,19 +95,13 @@ jobs:
 
           echo "🔍 AlgoSu API 호출하여 활성화된 문제 목록 조회 중..."
           # API 호출 실패 시 {"problems":[]} 기본값 처리하여 중단 방지 (에러 무시)
-          API_RES=$(curl -s "https://analyzealgo.leo0409.work/api/problems/active" || echo '{"problems":[]}')
+          ACTIVE_JSON=$(curl -sf --max-time 10 "https://analyzealgo.leo0409.work/api/problems/active" || echo '{"problems":[]}')
           
-          # 응답 형식이 올바르지 않은 경우 기본값으로 처리
-          if ! echo "$API_RES" | grep -q '"problems"'; then
-            API_RES='{"problems":[]}'
-          fi
-
-          # 등록된 문제 번호 추출 (jq 대신 grep과 awk 등을 활용)
-          # 추출 후 공백으로 구분된 한 줄 문자열로 생성
-          REGISTERED=$(echo "$API_RES" | grep -o '"problemNumber":[0-9]*' | awk -F':' '{print $2}' | tr '\n' ' ' | sed 's/ *$//')
+          # jq를 사용하여 정확하게 등록된 문제 번호 목록(boj_number) 추출
+          REGISTERED=$(echo "$ACTIVE_JSON" | jq -r '.problems | map(.boj_number) | join(" ")')
           
           if [ -z "$REGISTERED" ]; then
-            echo "⚠️ 이번 주 등록된 문제 목록($REGISTERED)이 비어있거나 불러오지 못했습니다. (exit 0)"
+            echo "⚠️ 이번 주 등록된 문제 목록이 비어있거나 불러오지 못했습니다. (exit 0)"
             exit 0
           fi
 
