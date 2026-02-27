@@ -3,88 +3,141 @@ import java.util.*;
 import java.io.*;
 
 public class Main {
-    // 보드의 세로(R)와 가로(C) 크기를 저장할 변수입니다.
-    static int R;
-    static int C;
-    
-    // 입력받은 알파벳 보드를 숫자로 변환하여 저장할 2차원 배열입니다.
+    // N: 세로 크기, M: 가로 크기
+    static int N;
+    static int M;
+    // matrix: 초기 지도 상태를 저장하는 배열
     static int[][] matrix;
-    
-    // 알파벳 'A'를 기준으로 삼아 문자를 0~25 사이의 숫자로 변환하기 위한 기준값입니다.
-    static int std = 'A';
-    
-    // (참고) 선언은 되었지만 현재 코드 로직상 사용되지 않는 변수입니다.
-    static boolean[][] visited;
-    
-    // 클래스 레벨에서 선언된 알파벳 방문 여부 체크 배열입니다.
-    // (주의: main 메서드 안에서 같은 이름으로 새로 선언해서 사용 중이므로, 이 변수는 실제론 쓰이지 않습니다.)
-    static boolean[] check;
-    
-    // 말이 지날 수 있는 최대 칸의 수(정답)를 갱신하고 저장할 변수입니다.
-    static int counter;
-    
-	public static void main(String[] args) throws IOException{
-        // 빠른 입력을 위해 BufferedReader와 StringTokenizer를 사용합니다.
-    	BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-    	StringTokenizer st = new StringTokenizer(br.readLine());
-    	
-        // 첫 줄에서 R(행)과 C(열)를 입력받습니다.
-    	R = Integer.parseInt(st.nextToken());
-    	C = Integer.parseInt(st.nextToken());
-        
-        // 보드의 크기만큼 matrix 배열을 초기화합니다.
-    	matrix = new int[R][C];
-        
-        // 보드의 상태를 입력받아 matrix 배열을 채웁니다.
-    	for(int i=0; i<R; i++) {
-    		String line = br.readLine();
-    		for(int j=0; j<C; j++) {
-                // 문자를 입력받은 뒤, 'A'를 빼서 0~25 사이의 정수로 변환하여 저장합니다.
-                // (예: 'A' -> 0, 'B' -> 1, ... 'Z' -> 25)
-    			matrix[i][j] = line.charAt(j)-std;
-    		}	
-    	}
+    // empty: 벽을 세울 수 있는 빈 칸(0)들의 좌표 리스트
+    static ArrayList<int[]> empty;
+    // virus: 바이러스(2)가 있는 좌표 리스트
+    static ArrayList<int[]> virus;
+    // answer: 안전 영역의 최대 크기를 저장할 변수
+    static int answer;
 
-        // 알파벳 A부터 Z까지(총 26개) 방문 여부를 체크할 배열을 생성합니다.
-		boolean[] check = new boolean['Z'-'A'+1];
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st = new StringTokenizer(br.readLine());
+
+        N = Integer.parseInt(st.nextToken());
+        M = Integer.parseInt(st.nextToken());
+        matrix = new int[N][M];
+        virus = new ArrayList<>();
+        empty = new ArrayList<>();
+        answer = 0;
+
+        // 지도의 정보를 입력받으면서 바이러스 위치와 빈 칸 위치를 각각 리스트에 저장해요.
+        for (int i = 0; i < N; i++) {
+            st = new StringTokenizer(br.readLine());
+            for (int j = 0; j < M; j++) {
+                int now = Integer.parseInt(st.nextToken());
+                if (now == 2) {
+                    virus.add(new int[] {i, j});
+                } else if (now == 0) {
+                    empty.add(new int[] {i, j});
+                }
+                matrix[i][j] = now;
+            }
+        }
+
+        // 빈 칸들 중에서 3개를 뽑는 조합(Combination)을 시작합니다!
+        combination(0, 0, new ArrayDeque<Integer>());
         
-        // 시작점(0, 0)의 알파벳을 방문했다고 표시합니다.
-		check[matrix[0][0]] = true;
+        // 최종적으로 계산된 안전 영역의 최댓값을 출력해요.
+        System.out.println(answer);
+    }
+
+    /**
+     * 빈 칸 리스트(empty)에서 3개를 선택하는 조합 함수예요.
+     * @param idx 현재 검사 중인 빈 칸의 인덱스
+     * @param c 현재까지 선택된 벽의 개수
+     * @param selected 선택된 빈 칸의 인덱스들을 담은 큐
+     */
+    static void combination(int idx, int c, ArrayDeque<Integer> selected) {
+        // 벽 3개를 모두 선택했다면?
+        if (c == 3) {
+            // 실제로 벽을 세워보고 안전 영역의 크기를 계산해요.
+            int now = makeWall(selected);
+            // 그중 가장 큰 값을 answer에 업데이트합니다.
+            answer = Math.max(answer, now);
+            return;
+        }
         
-        // (0, 0) 위치에서 시작하여 DFS 탐색을 시작합니다. 초기 이동 횟수는 1입니다.
-		dfs(0, 0, 1, check);
+        // 인덱스가 범위를 벗어나면 종료해요.
+        if (idx >= empty.size()) {
+            return;
+        }
+
+        // 1. 현재 인덱스의 빈 칸을 선택하는 경우
+        selected.offerLast(idx);
+        combination(idx + 1, c + 1, selected);
         
-        // 탐색이 모두 끝난 후, 최댓값으로 갱신된 counter를 출력합니다.
-		System.out.println(counter);
-	}
-    
-    // 상하좌우 탐색을 위한 방향 배열입니다. (dy: y좌표 이동, dx: x좌표 이동)
-	static int[] dy = {1, -1, 0, 0}; // 하, 상, 제자리, 제자리
-	static int[] dx = {0, 0, 1, -1}; // 제자리, 제자리, 우, 좌
-	
-    // 깊이 우선 탐색(DFS)과 백트래킹을 수행하는 메서드입니다.
-	static void dfs(int y, int x, int count, boolean[] check) {
-        // 상하좌우 4가지 방향으로 이동을 시도합니다.
-		for(int i=0; i<4; i++) {
-            // 다음으로 이동할 새로운 y, x 좌표를 계산합니다.
-			int ny = y+dy[i];
-			int nx = x+dx[i];
-            
-            // 1. 새로운 좌표가 보드 범위(R x C) 안에 있고
-            // 2. 해당 좌표의 알파벳을 아직 방문하지 않았다면 (!check[...])
-			if((ny>=0&&ny<R) && (nx>=0&&nx<C) && !check[matrix[ny][nx]]) {
-                
-                // 해당 알파벳을 방문 처리합니다.
-				check[matrix[ny][nx]] = true;
-                
-                // 다음 칸으로 이동하여 DFS를 재귀 호출합니다. (이동 횟수 count+1 증가)
-				dfs(ny, nx, count+1, check);
-                
-                // [백트래킹] 다른 경로로 탐색할 때 영향을 주지 않도록, 방문 처리를 다시 해제합니다.
-				check[matrix[ny][nx]] = false;
-			}
-		}
-        // 각 재귀 호출마다 현재까지의 이동 횟수(count)와 기존의 최대 이동 횟수(counter)를 비교하여 최댓값을 갱신합니다.
-		counter = Math.max(counter, count);
-	}
+        // 2. 현재 인덱스의 빈 칸을 선택하지 않는 경우 (백트래킹)
+        selected.pollLast();
+        combination(idx + 1, c, selected);
+    }
+
+    /**
+     * 선택된 좌표에 실제로 벽을 세우고 바이러스를 퍼뜨리는 준비를 하는 함수예요.
+     */
+    static int makeWall(ArrayDeque<Integer> selected) {
+        // 원본 지도를 건드리지 않기 위해 임시 배열(tmp)을 복사해서 사용해요.
+        int[][] tmp = new int[N][M];
+        for (int i = 0; i < N; i++) {
+            tmp[i] = matrix[i].clone();
+        }
+
+        // 선택된 3개의 위치에 벽(1)을 세웁니다.
+        for (int idx : selected) {
+            int[] yx = empty.get(idx);
+            tmp[yx[0]][yx[1]] = 1;
+        }
+
+        // 벽이 세워진 상태에서 바이러스를 퍼뜨려봅니다.
+        return spread(tmp);
+    }
+
+    /**
+     * BFS를 이용해 바이러스를 퍼뜨리고 안전 영역(0)의 개수를 세는 함수예요.
+     */
+    static int spread(int[][] tmp) {
+        int count = 0;
+        ArrayDeque<int[]> q = new ArrayDeque<>();
+        boolean[][] visited = new boolean[N][M];
+
+        // 처음에 확인된 모든 바이러스 위치를 큐에 넣고 시작해요.
+        for (int i = 0; i < virus.size(); i++) {
+            q.offerLast(virus.get(i));
+        }
+
+        // 상, 하, 좌, 우 네 방향 탐색을 위한 배열
+        int[] dy = {1, -1, 0, 0};
+        int[] dx = {0, 0, 1, -1};
+
+        while (!q.isEmpty()) {
+            int[] now = q.pollFirst();
+
+            for (int i = 0; i < 4; i++) {
+                int ny = now[0] + dy[i];
+                int nx = now[1] + dx[i];
+
+                // 지도 범위 내에 있고, 방문한 적 없으며, 빈 칸(0)인 경우 바이러스가 퍼집니다!
+                if ((ny >= 0 && ny < N) && (nx >= 0 && nx < M) && !visited[ny][nx] && (tmp[ny][nx] == 0)) {
+                    visited[ny][nx] = true;
+                    tmp[ny][nx] = 2; // 바이러스 전파
+                    q.offerLast(new int[] {ny, nx});
+                }
+            }
+        }
+
+        // 모든 바이러스가 퍼진 후, 남아있는 빈 칸(0)의 개수를 세어줍니다.
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                if (tmp[i][j] == 0) {
+                    count += 1;
+                }
+            }
+        }
+        return count;
+    }
 }
