@@ -3,7 +3,7 @@ package ish.template;
 import java.io.*;
 import java.util.*;
 
-public class Main { // BOJ 1916
+public class Main { // BOJ 1916 
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     static StringTokenizer st;
     static int N,M,a,b,c;
