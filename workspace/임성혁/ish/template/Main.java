@@ -3,85 +3,74 @@ package ish.template;
 import java.io.*;
 import java.util.*;
 
-public class Main {
+public class Main { // BOJ 1916
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     static StringTokenizer st;
-    static int N,M,NM,cnt,max;
-    static int[] map, wallmap;
-    static boolean[] visited;
-    static int[] dx = {1, -1, 0 , 0};
-    static int[] dy = {0,0,1,-1};
+    static int N,M,a,b,c;
+    static int[] dist;
+    static List<List<Node>> adj = new ArrayList<>();
+
+    static class Node implements Comparable<Node>{
+        int to;
+        int dist;
+        Node(int to, int dist){
+            this.to = to;
+            this.dist = dist;
+        }
+
+        @Override
+        public int compareTo(Node o) {
+            return Integer.compare(this.dist, o.dist);
+        }
+    }
     public static void main(String[] args) throws IOException{
 
         st = new StringTokenizer(br.readLine());
         N = Integer.parseInt(st.nextToken());
+        st = new StringTokenizer(br.readLine());
         M = Integer.parseInt(st.nextToken());
-        NM = N*M; // 벽 3개를 선택하기 위해 1차원 배열로 변환
-        map = new int[NM];
-        max = 0;
-        int idx = 0;
 
-        for(int i=0;i<N;i++){
+        for(int i=0;i<=N;i++){
+            adj.add(new ArrayList<>());
+        }
+
+        dist = new int[N+1];
+
+        for(int i=0;i<M;i++){
             st = new StringTokenizer(br.readLine());
-            for(int j=0;j<M;j++){
-                map[idx++] = Integer.parseInt(st.nextToken());
+            a = Integer.parseInt(st.nextToken());
+            b = Integer.parseInt(st.nextToken());
+            c = Integer.parseInt(st.nextToken());
+            adj.get(a).add(new Node(b,c)); // 인접리스트
+        }
+
+        st = new StringTokenizer(br.readLine());
+        a = Integer.parseInt(st.nextToken());
+        b = Integer.parseInt(st.nextToken());
+
+        Arrays.fill(dist,Integer.MAX_VALUE); // 초기화
+        dist[a] = 0;
+
+        // 다익스트라
+        PriorityQueue<Node> pq = new PriorityQueue<>();
+        pq.add(new Node(a,0));
+
+        while(!pq.isEmpty()){
+            Node curr = pq.poll();
+            int currTo = curr.to;
+            int currD = curr.dist;
+
+            if(dist[currTo]<currD) continue; // 이미 처리된 노드라면 건너뜀
+            for(Node next: adj.get(currTo)){
+                if(dist[next.to]>dist[currTo]+next.dist){
+                    dist[next.to] = dist[currTo]+next.dist;
+                    pq.add(new Node(next.to, dist[next.to]));
+                }
             }
-        }
+        }        
 
-        pick3(0,0);
-
-        System.out.println(max);
+        System.out.println(dist[b]);
     }
 
-    static void pick3(int idx, int depth){
-        if(depth==3){ // 벽은 3개까지 세운다
-            wallmap = map.clone(); // 깊은 복사 (필수!!)
-            spreadVirus(); // 벽3개 선택이 완료되면 해당 map으로 virus floodfill
-            return;
-        }
 
-        for(int i=idx;i<NM;i++){
-            if(map[i]!=0) continue; // 1,2 처럼 벽을 세울 수 없으면 건너뜀
-            map[i] = 1; // 벽을 세운다
-            pick3(i+1, depth+1); // 재귀
-            map[i] = 0; // 백트래킹
-        }
-    }
-
-    static void spreadVirus(){ // 바이러스 확산 후 안전구역 계산
-        visited = new boolean[NM]; // 방문기록 초기화
-        for(int i=0;i<NM;i++){
-            if(visited[i] || wallmap[i]!=2) continue; // 이미 방문했거나, 바이러스가 아니라면 건너뛰기
-            bfs(i); // FLOOD FILL
-        }
-
-        cnt = 0;
-        for(int i=0;i<NM;i++) // 안전구역 카운팅
-            if(wallmap[i]==0) cnt++;
-        
-        if(cnt>max) max = cnt;
-    }
-
-    static void bfs(int index){
-        Queue<Integer> q = new ArrayDeque<>();
-        q.add(index);
-        visited[index] = true;
-        int nx,ny;
-
-
-        while(!q.isEmpty()){
-            int cIndex = q.poll();
-
-            for(int i=0;i<4;i++){ // 상하좌우에 대해서
-                nx = cIndex/M + dx[i];
-                ny = cIndex%M + dy[i];
-                int NIndex = nx*M+ny;
-                // 범위에서 벗어나거나 방문했거나 벽이등장한다면 pass
-                if(nx<0 || nx>=N || ny<0 || ny>=M || visited[NIndex] || wallmap[NIndex]==1) continue;
-                visited[NIndex] = true;
-                wallmap[NIndex] = 2;
-                q.add(NIndex);
-            }
-        }
-    }
 }
